@@ -1,21 +1,13 @@
 require 'spec_helper'
 
 describe MailManager::Lib do
-  let(:mailman) { mock(MailManager) }
-  let(:subject) { MailManager::Lib.new(mailman) }
+  let(:mailman)   { mock(MailManager) }
+  let(:subject)   { MailManager::Lib.new }
+  let(:fake_root) { '/foo/bar' }
 
-  describe "#initialize" do
-    it "should fail w/o a valid MailManager object" do
-      lambda {
-        MailManager::Lib.new
-      }.should raise_error(ArgumentError)
-    end
-
-    context "with a valid MailManager object" do
-      it "should succeed" do
-        MailManager::Lib.new(mailman).should_not be_nil
-      end
-    end
+  before :each do
+    subject.stub(:mailman).and_return(mailman)
+    mailman.stub(:root).and_return(fake_root)
   end
 
   describe "#lists" do
@@ -26,11 +18,69 @@ describe MailManager::Lib do
      BarBar - Dummy list
     Mailman - Mailman site list
 EOF
-      fake_root = '/foo/bar'
-      mailman.stub(:root).and_return(fake_root)
-      subject.stub(:run_command).with("#{fake_root}/bin/list_lists  2>&1").and_return(list_result)
-      $?.stub(:exitstatus).and_return(0)
+      subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1").
+        and_return(list_result)
       subject.lists.should have(3).lists
+    end
+  end
+
+  describe "#create_list" do
+    it "should raise an argument error if list name is missing" do
+      lambda {
+        subject.create_list(:admin_email => 'foo@bar.baz', :admin_password => 'qux')
+      }.should raise_error(ArgumentError)
+    end
+    it "should raise an argument error if list admin email is missing" do
+      lambda {
+        subject.create_list(:name => 'foo', :admin_password => 'qux')
+      }.should raise_error(ArgumentError)
+    end
+    it "should raise an argument error if admin password is missing" do
+      lambda {
+        subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz')
+      }.should raise_error(ArgumentError)
+    end
+
+    context "with valid list params" do
+      let(:new_aliases) {
+        ['foo:              "|/foo/bar/mail/mailman post foo"',
+         'foo-admin:        "|/foo/bar/mail/mailman admin foo"',
+         'foo-bounces:      "|/foo/bar/mail/mailman bounces foo"',
+         'foo-confirm:      "|/foo/bar/mail/mailman confirm foo"',
+         'foo-join:         "|/foo/bar/mail/mailman join foo"',
+         'foo-leave:        "|/foo/bar/mail/mailman leave foo"',
+         'foo-owner:        "|/foo/bar/mail/mailman owner foo"',
+         'foo-request:      "|/foo/bar/mail/mailman request foo"',
+         'foo-subscribe:    "|/foo/bar/mail/mailman subscribe foo"',
+         'foo-unsubscribe:  "|/foo/bar/mail/mailman unsubscribe foo"']
+      }
+      let(:new_list_return) {
+        prefix =<<EOF
+To finish creating your mailing list, you must edit your /etc/aliases (or                           
+equivalent) file by adding the following lines, and possibly running the                            
+`newaliases' program:                                                                               
+                                                                                                    
+## foo mailing list                                                                                 
+EOF
+        prefix+new_aliases.join("\n")
+      }
+      let(:fake_aliases_file) { mock(File) }
+
+      before :each do
+        File.stub(:open).with('/etc/aliases', 'a').and_return(fake_aliases_file)
+        subject.stub(:run_newaliases_command)
+        subject.stub(:run_command).
+          with("#{fake_root}/bin/newlist -q foo foo@bar.baz qux 2>&1").
+          and_return(new_list_return)
+      end
+
+      it "should create the list" do
+        subject.should_receive(:run_command).
+          with("#{fake_root}/bin/newlist -q foo foo@bar.baz qux 2>&1").
+          and_return(new_list_return)
+        subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
+                            :admin_password => 'qux')
+      end
     end
   end
 end

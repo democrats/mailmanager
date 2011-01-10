@@ -11,8 +11,8 @@ module MailManager
 
   class Lib
 
-    def initialize(mailman)
-      @mailman = mailman
+    def mailman
+      MailManager::Base.instance
     end
 
     def lists
@@ -21,13 +21,31 @@ module MailManager
       parse_output(cmd, out)
     end
 
-    def command(cmd, opts = [])
-      opts = [opts].flatten.map {|s| escape(s) }.join(' ')
-      mailman_cmd = "#{@mailman.root}/bin/#{cmd.to_s} #{opts} 2>&1"
+    def create_list(params)
+      cmd = :newlist
+      out = command(cmd, params)
+      parse_output(cmd, out)
+    end
+
+    def command(cmd, opts = {})
+      case cmd
+      when :newlist
+        mailman_cmd = "#{mailman.root}/bin/#{cmd.to_s} -q "
+        raise ArgumentError, "Missing :name param" if opts[:name].nil?
+        raise ArgumentError, "Missing :admin_email param" if opts[:admin_email].nil?
+        raise ArgumentError, "Missing :admin_password param" if opts[:admin_password].nil?
+        mailman_cmd_suffix =
+          "#{opts.delete(:name)} #{opts.delete(:admin_email)} #{opts.delete(:admin_password)}"
+        mailman_cmd += opts.keys.map { |k| "--#{escape(k)}=#{escape(opts[k])}" }.join(' ')
+        mailman_cmd += "#{mailman_cmd_suffix} 2>&1"
+      else
+        # no options allowed in the fallback case
+        mailman_cmd = "#{mailman.root}/bin/#{cmd.to_s} 2>&1"
+      end
 
       out = run_command(mailman_cmd)
 
-      if $?.exitstatus > 0
+      if !$?.nil? && $?.exitstatus > 0
         raise MailManager::MailmanExecuteError.new(mailman_cmd + ':' + out.to_s)
       end
       out
@@ -45,12 +63,21 @@ module MailManager
 
     def parse_output(mailman_cmd, output)
       case mailman_cmd
+      when :newlist
+        list_name = nil
+        output.split("\n").each do |line|
+          if match = /^##\s+(.+?)mailing\s+list\s*$/.match(line)
+            list_name = match[1]
+          end
+        end
+        raise "Error getting name of newly created list" if list_name.nil?
+        return_obj = MailManager::List.new(mailman, list_name)
       when :list_lists
         lists = []
         output.split("\n").each do |line|
           next if line =~ /^\d+ matching mailing lists found:$/
           /^\s*(.+?)\s+-\s+(.+)$/.match(line) do |m|
-            lists << MailManager::List.new(@mailman, m[1])
+            lists << MailManager::List.new(mailman, m[1])
           end
         end
         return_obj = lists

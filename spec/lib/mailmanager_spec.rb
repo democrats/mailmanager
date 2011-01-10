@@ -3,25 +3,27 @@ require 'spec_helper'
 describe "MailManager" do
 
   describe "Base" do
-    describe ".initialize" do
-      it "should require a Mailman directory argument" do
+    describe ".instance" do
+      it "should require setting the Mailman root directory first" do
         lambda {
-          MailManager::Base.new
-        }.should raise_error(ArgumentError)
+          MailManager::Base.instance
+        }.should raise_error
       end
 
       it "should require that the Mailman directory exist" do
         lambda {
-          MailManager::Base.new('/foo/bar')
-        }.should raise_error(ArgumentError)
+          MailManager.root = '/foo/bar'
+          MailManager::Base.instance
+        }.should raise_error
       end
 
       it "should require that the Mailman dir have a bin subdir" do
         Dir.stub(:exist?).with('/foo/bar').and_return(true)
         Dir.stub(:exist?).with('/foo/bar/bin').and_return(false)
         lambda {
-          MailManager::Base.new('/foo/bar')
-        }.should raise_error(ArgumentError)
+          MailManager.root = '/foo/bar'
+          MailManager::Base.instance
+        }.should raise_error
       end
 
       context "with a valid Mailman dir" do
@@ -40,12 +42,14 @@ describe "MailManager" do
         it "should raise an error if one of the bin files is missing" do
           File.stub(:exist?).with("#{mailman_path}/bin/add_members").and_return(false)
           lambda {
-            MailManager::Base.new(mailman_path)
-          }.should raise_error(ArgumentError)
+            MailManager.root = mailman_path
+            MailManager::Base.instance
+          }.should raise_error
         end
 
         it "should succeed if the all the bin files are present" do
-          MailManager::Base.new(mailman_path).should_not be_nil
+          MailManager.root = mailman_path
+          MailManager::Base.instance.should_not be_nil
         end
 
         describe "#lists" do
@@ -63,7 +67,7 @@ describe "MailManager" do
     end
 
     describe ".create" do
-
+      
     end
   end
 end

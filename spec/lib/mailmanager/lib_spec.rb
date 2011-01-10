@@ -1,13 +1,13 @@
 require 'spec_helper'
 
 describe MailManager::Lib do
-  let(:mailman)   { mock(MailManager) }
-  let(:subject)   { MailManager::Lib.new }
-  let(:fake_root) { '/foo/bar' }
+  let(:mailmanager) { mock(MailManager) }
+  let(:subject)     { MailManager::Lib.new }
+  let(:fake_root)   { '/foo/bar' }
 
   before :each do
-    subject.stub(:mailman).and_return(mailman)
-    mailman.stub(:root).and_return(fake_root)
+    subject.stub(:mailmanager).and_return(mailmanager)
+    mailmanager.stub(:root).and_return(fake_root)
   end
 
   describe "#lists" do

@@ -11,7 +11,7 @@ module MailManager
 
   class Lib
 
-    def mailman
+    def mailmanager
       MailManager::Base.instance
     end
 
@@ -27,10 +27,16 @@ module MailManager
       parse_output(cmd, out)
     end
 
+    def members_of(list)
+      cmd = :list_members
+      out = command(cmd, :list => list.name)
+      parse_output(cmd, out)
+    end
+
     def command(cmd, opts = {})
       case cmd
       when :newlist
-        mailman_cmd = "#{mailman.root}/bin/#{cmd.to_s} -q "
+        mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} -q "
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         raise ArgumentError, "Missing :admin_email param" if opts[:admin_email].nil?
         raise ArgumentError, "Missing :admin_password param" if opts[:admin_password].nil?
@@ -40,7 +46,7 @@ module MailManager
         mailman_cmd += "#{mailman_cmd_suffix} 2>&1"
       else
         # no options allowed in the fallback case
-        mailman_cmd = "#{mailman.root}/bin/#{cmd.to_s} 2>&1"
+        mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} 2>&1"
       end
 
       out = run_command(mailman_cmd)
@@ -71,13 +77,13 @@ module MailManager
           end
         end
         raise "Error getting name of newly created list" if list_name.nil?
-        return_obj = MailManager::List.new(mailman, list_name)
+        return_obj = MailManager::List.new(list_name)
       when :list_lists
         lists = []
         output.split("\n").each do |line|
           next if line =~ /^\d+ matching mailing lists found:$/
           /^\s*(.+?)\s+-\s+(.+)$/.match(line) do |m|
-            lists << MailManager::List.new(mailman, m[1])
+            lists << MailManager::List.new(m[1])
           end
         end
         return_obj = lists

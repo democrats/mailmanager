@@ -1,6 +1,7 @@
 require "singleton"
 require "rubygems"
 require "bundler/setup"
+require "json"
 
 require 'mailmanager/lib'
 require 'mailmanager/list'

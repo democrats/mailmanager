@@ -56,7 +56,7 @@ module MailManager
         proxy_path = File.dirname(__FILE__)
         mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailmanager.root}/bin/#{cmd.to_s} " +
                       "-q -r listproxy.command #{escape(opts.delete(:name))} " +
-                      "#{opts.delete(:wlcmd)}"
+                      "#{opts.delete(:wlcmd)} 2>&1"
       else
         # no options allowed in the fallback case
         mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} 2>&1"

@@ -69,9 +69,6 @@ EOF
       before :each do
         File.stub(:open).with('/etc/aliases', 'a').and_return(fake_aliases_file)
         subject.stub(:run_newaliases_command)
-        subject.stub(:run_command).
-          with("#{fake_root}/bin/newlist -q foo foo@bar.baz qux 2>&1").
-          and_return(new_list_return)
       end
 
       it "should create the list" do
@@ -84,12 +81,37 @@ EOF
     end
   end
 
-  describe "#regular_members_for" do
-    #TODO
-  end
+  context "with populated list" do
+    let(:list)            { list = mock(MailManager::List)
+                            list.stub(:name).and_return('foo')
+                            list 
+                          }
+    let(:regular_members) { ['me@here.com', 'you@there.org'] }
+    let(:digest_members)  { ['them@that.net'] }
 
-  describe "#digest_members_for" do
-    #TODO
+    describe "#regular_members_for" do
+      it "should retrieve the regular list members" do
+        cmd = "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
+              "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " +
+              "getRegularMemberKeys 2>&1"
+        subject.should_receive(:run_command).
+          with(cmd).
+          and_return(JSON.generate(regular_members))
+        subject.regular_members_of(list).should == regular_members
+      end
+    end
+
+    describe "#digest_members_for" do
+      it "should retrieve the digest list members" do
+        cmd = "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
+              "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " +
+              "getDigestMemberKeys 2>&1"
+        subject.should_receive(:run_command).
+          with(cmd).
+          and_return(JSON.generate(digest_members))
+        subject.digest_members_of(list).should == digest_members
+      end
+    end
   end
 
 end

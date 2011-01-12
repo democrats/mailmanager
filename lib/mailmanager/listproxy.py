@@ -10,8 +10,8 @@ class MailingListEncoder(json.JSONEncoder):
 def dumplist(mlist):
   print json.dumps(mlist, True, cls=MailingListEncoder)
 
-def loadlist(mlist, jsonlist):
-  newlist = json.loads(jsonlist)
-  for attr in newlist:
-    print "Setting %s to %s" % (attr, newlist[attr])
+#def loadlist(mlist, jsonlist):
+  #newlist = json.loads(jsonlist)
+  #for attr in newlist:
+    #print "Setting %s to %s" % (attr, newlist[attr])
 

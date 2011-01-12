@@ -16,6 +16,11 @@ module MailManager
     @root
   end
 
+  def self.init(root)
+    self.root = root
+    Base.instance
+  end
+
   class Base
     include Singleton
 

@@ -76,11 +76,20 @@ EOF
 
       it "should create the list" do
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q foo foo@bar.baz qux 2>&1").
+          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1").
           and_return(new_list_return)
         subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
       end
     end
   end
+
+  describe "#regular_members_for" do
+    #TODO
+  end
+
+  describe "#digest_members_for" do
+    #TODO
+  end
+
 end

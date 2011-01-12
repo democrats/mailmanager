@@ -25,7 +25,15 @@ module MailManager
     end
 
     def members
-      lib.members_of(self)
+      regular_members + digest_members
+    end
+
+    def regular_members
+      lib.regular_members_of(self)
+    end
+
+    def digest_members
+      lib.digest_members_of(self)
     end
   end
 end

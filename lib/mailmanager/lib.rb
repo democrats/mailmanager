@@ -27,10 +27,16 @@ module MailManager
       parse_output(cmd, out)
     end
 
-    def members_of(list)
-      cmd = :list_members
-      out = command(cmd, :list => list.name)
-      parse_output(cmd, out)
+    def regular_members_of(list)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :getRegularMemberKeys)
+      parse_json_output(out)
+    end
+
+    def digest_members_of(list)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :getDigestMemberKeys)
+      parse_json_output(out)
     end
 
     def command(cmd, opts = {})
@@ -40,10 +46,17 @@ module MailManager
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         raise ArgumentError, "Missing :admin_email param" if opts[:admin_email].nil?
         raise ArgumentError, "Missing :admin_password param" if opts[:admin_password].nil?
-        mailman_cmd_suffix =
-          "#{opts.delete(:name)} #{opts.delete(:admin_email)} #{opts.delete(:admin_password)}"
+        mailman_cmd_suffix = [:name, :admin_email, :admin_password].map { |key|
+          escape(opts.delete(key))
+        }.join(' ')
         mailman_cmd += opts.keys.map { |k| "--#{escape(k)}=#{escape(opts[k])}" }.join(' ')
         mailman_cmd += "#{mailman_cmd_suffix} 2>&1"
+      when :withlist
+        raise ArgumentError, "Missing :name param" if opts[:name].nil?
+        proxy_path = File.dirname(__FILE__)
+        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailmanager.root}/bin/#{cmd.to_s} " +
+                      "-q -r listproxy.command #{escape(opts.delete(:name))} " +
+                      "#{opts.delete(:wlcmd)}"
       else
         # no options allowed in the fallback case
         mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} 2>&1"
@@ -89,6 +102,10 @@ module MailManager
         return_obj = lists
       end
       return_obj
+    end
+
+    def parse_json_output(json)
+      JSON.parse(json)
     end
   end
 end

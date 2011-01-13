@@ -95,7 +95,7 @@ EOF
     let(:write_args) { "-l " + read_args }
 
     describe "#regular_members_of" do
-      it "should retrieve the regular list members" do
+      it "should ask Mailman for the regular list members" do
         subject.should_receive(:run_command).
           with(cmd+read_args+"getRegularMemberKeys 2>&1").
           and_return(JSON.generate(regular_members))
@@ -104,7 +104,7 @@ EOF
     end
 
     describe "#digest_members_of" do
-      it "should retrieve the digest list members" do
+      it "should ask Mailman for the digest list members" do
         subject.should_receive(:run_command).
           with(cmd+read_args+"getDigestMemberKeys 2>&1").
           and_return(JSON.generate(digest_members))
@@ -113,7 +113,7 @@ EOF
     end
 
     describe "#add_member" do
-      it "should add the member to the list" do
+      it "should ask Mailman to add the member to the list" do
         new_member = 'newb@dnc.org'
         result = {"result" => "pending_confirmation"}
         subject.should_receive(:run_command).
@@ -123,14 +123,36 @@ EOF
       end
     end
 
-    describe "#add_approved_member" do
-      it "should add the member to the list" do
+    describe "#approved_add_member" do
+      it "should ask Mailman to add the member to the list" do
         new_member = 'newb@dnc.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
           with(cmd+write_args+"ApprovedAddMember \"#{new_member}\" 2>&1").
           and_return(JSON.generate(result))
-        subject.add_approved_member(list, new_member).should == result
+        subject.approved_add_member(list, new_member).should == result
+      end
+    end
+
+    describe "#delete_member" do
+      it "should ask Mailman to delete the member from the list" do
+        former_member = 'oldie@ofa.org'
+        result = {"result" => "success"}
+        subject.should_receive(:run_command).
+          with(cmd+write_args+"DeleteMember \"#{former_member}\" 2>&1").
+          and_return(JSON.generate(result))
+        subject.delete_member(list, former_member).should == result
+      end
+    end
+
+    describe "#approved_delete_member" do
+      it "should ask Mailman to delete the member from the list" do
+        former_member = 'oldie@ofa.org'
+        result = {"result" => "success"}
+        subject.should_receive(:run_command).
+          with(cmd+write_args+"ApprovedDeleteMember \"#{former_member}\" 2>&1").
+          and_return(JSON.generate(result))
+        subject.approved_delete_member(list, former_member).should == result
       end
     end
   end

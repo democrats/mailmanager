@@ -49,29 +49,29 @@ describe MailManager::List do
 
     describe "#regular_members" do
       it "should return only regular members" do
-        lib.stub(:regular_members_of).with(subject).and_return(regular_members)
+        lib.stub(:regular_members_of).with(subject).and_return({'return' => regular_members})
         subject.regular_members.should == regular_members
       end
     end
 
     describe "#digest_members" do
       it "should return only digest members" do
-        lib.stub(:digest_members_of).with(subject).and_return(digest_members)
+        lib.stub(:digest_members_of).with(subject).and_return({'return' => digest_members})
         subject.digest_members.should == digest_members
       end
     end
 
     describe "#members" do
       it "should return the list of all members" do
-        lib.stub(:regular_members_of).with(subject).and_return(regular_members)
-        lib.stub(:digest_members_of).with(subject).and_return(digest_members)
+        lib.stub(:regular_members_of).with(subject).and_return({'return' => regular_members})
+        lib.stub(:digest_members_of).with(subject).and_return({'return' => digest_members})
         subject.members.should == all_members
       end
     end
   end
 
   describe "#add_member" do
-    it "should add the member" do
+    it "should tell lib to add the member" do
       lib.should_receive(:add_member).with(subject, 'foo@bar.baz').
         and_return({'result' => 'pending_confirmation'})
       subject.add_member('foo@bar.baz').should == :pending_confirmation
@@ -84,17 +84,33 @@ describe MailManager::List do
     end
   end
 
-  describe "#add_approved_member" do
-    it "should add the member" do
-      lib.should_receive(:add_approved_member).with(subject, 'foo@bar.baz').
+  describe "#approved_add_member" do
+    it "should tell lib to add the member" do
+      lib.should_receive(:approved_add_member).with(subject, 'foo@bar.baz').
         and_return({'result' => 'success'})
-      subject.add_approved_member('foo@bar.baz').should == :success
+      subject.approved_add_member('foo@bar.baz').should == :success
     end
 
     it "should accept an optional name argument" do
-      lib.should_receive(:add_approved_member).with(subject, 'Foo Bar <foo@bar.baz>').
+      lib.should_receive(:approved_add_member).with(subject, 'Foo Bar <foo@bar.baz>').
         and_return({'result' => 'success'})
-      subject.add_approved_member('foo@bar.baz', 'Foo Bar').should == :success
+      subject.approved_add_member('foo@bar.baz', 'Foo Bar').should == :success
+    end
+  end
+
+  describe "#delete_member" do
+    it "should tell lib to delete the member" do
+      lib.should_receive(:delete_member).with(subject, 'foo@bar.baz').
+        and_return({'result' => 'success'})
+      subject.delete_member('foo@bar.baz').should == :success
+    end
+  end
+
+  describe "#approved_delete_member" do
+    it "should tell lib to delete the member" do
+      lib.should_receive(:approved_delete_member).with(subject, 'foo@bar.baz').
+        and_return({'result' => 'success'})
+      subject.approved_delete_member('foo@bar.baz').should == :success
     end
   end
 end

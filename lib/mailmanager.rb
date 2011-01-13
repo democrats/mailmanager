@@ -8,6 +8,7 @@ require 'mailmanager/list'
 
 module MailManager
   @root = nil
+  @debug = ENV['MAILMANAGER_DEBUG'] =~ /^(?:1|true|y|yes|on)$/i ? true : false
 
   def self.root=(root)
     @root = root
@@ -15,6 +16,10 @@ module MailManager
 
   def self.root
     @root
+  end
+
+  def self.debug
+    @debug
   end
 
   def self.init(root)
@@ -44,6 +49,10 @@ module MailManager
 
     def lists
       @lib.lists
+    end
+
+    def create_list(params)
+      MailManager::List.create(params)
     end
   end
 

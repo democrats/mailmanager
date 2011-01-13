@@ -25,11 +25,11 @@ def command(mlist, cmd, *args):
     result = {}
     try:
         method = getattr(mlist, cmd)
-        if needs_userdesc[cmd]:
-            result = method(userdesc_for(args[0]))
+        if needs_userdesc.get(cmd, False):
+            result['return'] = method(userdesc_for(args[0]))
         else:
-            result = method(*args)
-        if needs_save[cmd]:
+            result['return'] = method(*args)
+        if needs_save.get(cmd, False):
             mlist.Save()
     except TypeError as err:
         error_msg = '%s' % err
@@ -45,8 +45,6 @@ def command(mlist, cmd, *args):
         error_msg = '%s: %s' % (type(err), err)
         print json.dumps({'error': error_msg})
     else:
-        if not isinstance(result, dict):
-            result = {}
         result['result'] = 'success'
         print json.dumps(result)
 

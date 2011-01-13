@@ -46,10 +46,24 @@ module MailManager
       parse_json_output(out)
     end
 
-    def add_approved_member(list, member)
+    def approved_add_member(list, member)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :ApprovedAddMember,
                     :args => [member], :lock => true)
+      parse_json_output(out)
+    end
+
+    def delete_member(list, email)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :DeleteMember,
+                    :args => [email], :lock => true)
+      parse_json_output(out)
+    end
+
+    def approved_delete_member(list, email)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :ApprovedDeleteMember,
+                    :args => [email], :lock => true)
       parse_json_output(out)
     end
 
@@ -82,6 +96,7 @@ module MailManager
         mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} 2>&1"
       end
 
+      puts "Running mailman command: #{mailman_cmd}" if MailManager.debug
       out = run_command(mailman_cmd)
 
       if !$?.nil? && $?.exitstatus > 0

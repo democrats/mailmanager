@@ -69,4 +69,32 @@ describe MailManager::List do
       end
     end
   end
+
+  describe "#add_member" do
+    it "should add the member" do
+      lib.should_receive(:add_member).with(subject, 'foo@bar.baz').
+        and_return({'result' => 'pending_confirmation'})
+      subject.add_member('foo@bar.baz').should == :pending_confirmation
+    end
+
+    it "should accept an optional name argument" do
+      lib.should_receive(:add_member).with(subject, 'Foo Bar <foo@bar.baz>').
+        and_return({'result' => 'pending_confirmation'})
+      subject.add_member('foo@bar.baz', 'Foo Bar').should == :pending_confirmation
+    end
+  end
+
+  describe "#add_approved_member" do
+    it "should add the member" do
+      lib.should_receive(:add_approved_member).with(subject, 'foo@bar.baz').
+        and_return({'result' => 'success'})
+      subject.add_approved_member('foo@bar.baz').should == :success
+    end
+
+    it "should accept an optional name argument" do
+      lib.should_receive(:add_approved_member).with(subject, 'Foo Bar <foo@bar.baz>').
+        and_return({'result' => 'success'})
+      subject.add_approved_member('foo@bar.baz', 'Foo Bar').should == :success
+    end
+  end
 end

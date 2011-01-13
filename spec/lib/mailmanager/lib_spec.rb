@@ -82,34 +82,55 @@ EOF
   end
 
   context "with populated list" do
-    let(:list)            { list = mock(MailManager::List)
-                            list.stub(:name).and_return('foo')
-                            list 
-                          }
+    let(:list) { list = mock(MailManager::List)
+                 list.stub(:name).and_return('foo')
+                 list }
+
     let(:regular_members) { ['me@here.com', 'you@there.org'] }
     let(:digest_members)  { ['them@that.net'] }
 
-    describe "#regular_members_for" do
+    let(:cmd) { "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
+                "#{fake_root}/bin/withlist " }
+    let(:read_args)  { "-q -r listproxy.command \"foo\" " }
+    let(:write_args) { "-l " + read_args }
+
+    describe "#regular_members_of" do
       it "should retrieve the regular list members" do
-        cmd = "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
-              "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " +
-              "getRegularMemberKeys 2>&1"
         subject.should_receive(:run_command).
-          with(cmd).
+          with(cmd+read_args+"getRegularMemberKeys 2>&1").
           and_return(JSON.generate(regular_members))
         subject.regular_members_of(list).should == regular_members
       end
     end
 
-    describe "#digest_members_for" do
+    describe "#digest_members_of" do
       it "should retrieve the digest list members" do
-        cmd = "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
-              "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " +
-              "getDigestMemberKeys 2>&1"
         subject.should_receive(:run_command).
-          with(cmd).
+          with(cmd+read_args+"getDigestMemberKeys 2>&1").
           and_return(JSON.generate(digest_members))
         subject.digest_members_of(list).should == digest_members
+      end
+    end
+
+    describe "#add_member" do
+      it "should add the member to the list" do
+        new_member = 'newb@dnc.org'
+        result = {"result" => "pending_confirmation"}
+        subject.should_receive(:run_command).
+          with(cmd+write_args+"AddMember \"#{new_member}\" 2>&1").
+          and_return(JSON.generate(result))
+        subject.add_member(list, new_member).should == result
+      end
+    end
+
+    describe "#add_approved_member" do
+      it "should add the member to the list" do
+        new_member = 'newb@dnc.org'
+        result = {"result" => "success"}
+        subject.should_receive(:run_command).
+          with(cmd+write_args+"ApprovedAddMember \"#{new_member}\" 2>&1").
+          and_return(JSON.generate(result))
+        subject.add_approved_member(list, new_member).should == result
       end
     end
   end

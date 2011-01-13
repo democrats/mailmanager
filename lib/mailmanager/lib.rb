@@ -39,6 +39,20 @@ module MailManager
       parse_json_output(out)
     end
 
+    def add_member(list, member)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :AddMember, :args => [member],
+                    :lock => true)
+      parse_json_output(out)
+    end
+
+    def add_approved_member(list, member)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :ApprovedAddMember,
+                    :args => [member], :lock => true)
+      parse_json_output(out)
+    end
+
     def command(cmd, opts = {})
       case cmd
       when :newlist
@@ -54,9 +68,15 @@ module MailManager
       when :withlist
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         proxy_path = File.dirname(__FILE__)
-        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailmanager.root}/bin/#{cmd.to_s} " +
-                      "-q -r listproxy.command #{escape(opts.delete(:name))} " +
-                      "#{opts.delete(:wlcmd)} 2>&1"
+        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailmanager.root}/bin/#{cmd.to_s} "
+        mailman_cmd += "-l " if opts[:lock]
+        mailman_cmd += "-q -r listproxy.command #{escape(opts.delete(:name))} " +
+                       "#{opts.delete(:wlcmd)} "
+        if !opts[:args].nil? && !opts[:args].empty?
+          mailman_cmd += opts[:args].map { |arg| escape(arg) }.join(' ')
+          mailman_cmd += " "
+        end
+        mailman_cmd += "2>&1"
       else
         # no options allowed in the fallback case
         mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} 2>&1"
@@ -105,7 +125,11 @@ module MailManager
     end
 
     def parse_json_output(json)
-      JSON.parse(json)
+      result = JSON.parse(json)
+      if result.is_a?(Hash) && !result['error'].nil?
+        raise MailmanExecuteError, result['error']
+      end
+      result
     end
   end
 end

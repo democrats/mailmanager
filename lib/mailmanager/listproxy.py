@@ -1,5 +1,7 @@
 import json
+from email.Utils import parseaddr
 from Mailman import MailList
+from Mailman import Errors
 
 class MailingListEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -10,16 +12,43 @@ class MailingListEncoder(json.JSONEncoder):
 def dumplist(mlist):
     print json.dumps(mlist, True, cls=MailingListEncoder)
 
+class UserDesc: pass
+def userdesc_for(member):
+    userdesc = UserDesc()
+    userdesc.fullname, userdesc.address = parseaddr(member)
+    return userdesc
+
+needs_userdesc = dict(AddMember=True, ApprovedAddMember=True)
+needs_save = dict(AddMember=True, ApprovedAddMember=True)
+
 def command(mlist, cmd, *args):
+    result = {}
     try:
         method = getattr(mlist, cmd)
-        print json.dumps(method(*args))
+        if needs_userdesc[cmd]:
+            result = method(userdesc_for(args[0]))
+        else:
+            result = method(*args)
+        if needs_save[cmd]:
+            mlist.Save()
     except TypeError as err:
         error_msg = '%s' % err
         print json.dumps({'error': error_msg})
     except AttributeError as err:
-        error_msg = '%s is not a valid command; must be a MailList method' % err
+        error_msg = 'AttributeError: %s' % err
         print json.dumps({'error': error_msg})
+    except Errors.MMSubscribeNeedsConfirmation as err:
+        print json.dumps({'result': 'pending_confirmation'})
+    except Errors.MMAlreadyAMember as err:
+        print json.dumps({'result': 'already_a_member'})
+    except Exception as err:
+        error_msg = '%s: %s' % (type(err), err)
+        print json.dumps({'error': error_msg})
+    else:
+        if not isinstance(result, dict):
+            result = {}
+        result['result'] = 'success'
+        print json.dumps(result)
 
 #def loadlist(mlist, jsonlist):
     #newlist = json.loads(jsonlist)

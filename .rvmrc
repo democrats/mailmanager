@@ -15,10 +15,12 @@ if rvm list strings | grep -q "${ruby_string}" ; then
 
   # Ensure that Bundler is installed; install it if not
   if ! command -v bundle ; then
+    echo "Installing bundler... "
     gem install bundler
   fi
 
   # Run bundler but reduce excess noise
+  echo "Checking your bundle... "
   bundle | grep -v 'Using' | grep -v 'complete' | sed '/^$/d'
 
 else

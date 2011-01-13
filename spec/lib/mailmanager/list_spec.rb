@@ -49,22 +49,22 @@ describe MailManager::List do
 
     describe "#regular_members" do
       it "should return only regular members" do
-        lib.stub(:regular_members_of).with(subject).and_return({'return' => regular_members})
+        lib.stub(:regular_members).with(subject).and_return({'return' => regular_members})
         subject.regular_members.should == regular_members
       end
     end
 
     describe "#digest_members" do
       it "should return only digest members" do
-        lib.stub(:digest_members_of).with(subject).and_return({'return' => digest_members})
+        lib.stub(:digest_members).with(subject).and_return({'return' => digest_members})
         subject.digest_members.should == digest_members
       end
     end
 
     describe "#members" do
       it "should return the list of all members" do
-        lib.stub(:regular_members_of).with(subject).and_return({'return' => regular_members})
-        lib.stub(:digest_members_of).with(subject).and_return({'return' => digest_members})
+        lib.stub(:regular_members).with(subject).and_return({'return' => regular_members})
+        lib.stub(:digest_members).with(subject).and_return({'return' => digest_members})
         subject.members.should == all_members
       end
     end

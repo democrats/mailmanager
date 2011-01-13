@@ -90,25 +90,23 @@ EOF
     let(:digest_members)  { ['them@that.net'] }
 
     let(:cmd) { "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
-                "#{fake_root}/bin/withlist " }
-    let(:read_args)  { "-q -r listproxy.command \"foo\" " }
-    let(:write_args) { "-l " + read_args }
+                "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " }
 
-    describe "#regular_members_of" do
+    describe "#regular_members" do
       it "should ask Mailman for the regular list members" do
         subject.should_receive(:run_command).
-          with(cmd+read_args+"getRegularMemberKeys 2>&1").
+          with(cmd+"getRegularMemberKeys 2>&1").
           and_return(JSON.generate(regular_members))
-        subject.regular_members_of(list).should == regular_members
+        subject.regular_members(list).should == regular_members
       end
     end
 
-    describe "#digest_members_of" do
+    describe "#digest_members" do
       it "should ask Mailman for the digest list members" do
         subject.should_receive(:run_command).
-          with(cmd+read_args+"getDigestMemberKeys 2>&1").
+          with(cmd+"getDigestMemberKeys 2>&1").
           and_return(JSON.generate(digest_members))
-        subject.digest_members_of(list).should == digest_members
+        subject.digest_members(list).should == digest_members
       end
     end
 
@@ -117,7 +115,7 @@ EOF
         new_member = 'newb@dnc.org'
         result = {"result" => "pending_confirmation"}
         subject.should_receive(:run_command).
-          with(cmd+write_args+"AddMember \"#{new_member}\" 2>&1").
+          with(cmd+"AddMember \"#{new_member}\" 2>&1").
           and_return(JSON.generate(result))
         subject.add_member(list, new_member).should == result
       end
@@ -128,7 +126,7 @@ EOF
         new_member = 'newb@dnc.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
-          with(cmd+write_args+"ApprovedAddMember \"#{new_member}\" 2>&1").
+          with(cmd+"ApprovedAddMember \"#{new_member}\" 2>&1").
           and_return(JSON.generate(result))
         subject.approved_add_member(list, new_member).should == result
       end
@@ -139,7 +137,7 @@ EOF
         former_member = 'oldie@ofa.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
-          with(cmd+write_args+"DeleteMember \"#{former_member}\" 2>&1").
+          with(cmd+"DeleteMember \"#{former_member}\" 2>&1").
           and_return(JSON.generate(result))
         subject.delete_member(list, former_member).should == result
       end
@@ -150,7 +148,7 @@ EOF
         former_member = 'oldie@ofa.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
-          with(cmd+write_args+"ApprovedDeleteMember \"#{former_member}\" 2>&1").
+          with(cmd+"ApprovedDeleteMember \"#{former_member}\" 2>&1").
           and_return(JSON.generate(result))
         subject.approved_delete_member(list, former_member).should == result
       end

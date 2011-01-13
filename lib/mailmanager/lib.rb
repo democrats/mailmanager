@@ -27,13 +27,13 @@ module MailManager
       parse_output(cmd, out)
     end
 
-    def regular_members_of(list)
+    def regular_members(list)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :getRegularMemberKeys)
       parse_json_output(out)
     end
 
-    def digest_members_of(list)
+    def digest_members(list)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :getDigestMemberKeys)
       parse_json_output(out)
@@ -41,29 +41,52 @@ module MailManager
 
     def add_member(list, member)
       cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :AddMember, :args => [member],
-                    :lock => true)
+      out = command(cmd, :name => list.name, :wlcmd => :AddMember, :arg => member)
       parse_json_output(out)
     end
 
     def approved_add_member(list, member)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :ApprovedAddMember,
-                    :args => [member], :lock => true)
+                    :arg => member)
       parse_json_output(out)
     end
 
     def delete_member(list, email)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :DeleteMember,
-                    :args => [email], :lock => true)
+                    :arg => email)
       parse_json_output(out)
     end
 
     def approved_delete_member(list, email)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :ApprovedDeleteMember,
-                    :args => [email], :lock => true)
+                    :arg => email)
+      parse_json_output(out)
+    end
+
+    def moderators(list)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :moderator)
+      parse_json_output(out)
+    end
+
+    def add_moderator(list, email)
+      if moderators(list)['return'].include?(email)
+        return {'result' => 'already_a_moderator'}
+      end
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => 'moderator.append',
+                    :arg => email)
+      parse_json_output(out)
+    end
+
+    def delete_moderator(list, email)
+      raise "#{email} is not a moderator" unless moderators(list)['return'].include?(email)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => 'moderator.remove',
+                    :arg => email)
       parse_json_output(out)
     end
 
@@ -83,12 +106,10 @@ module MailManager
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         proxy_path = File.dirname(__FILE__)
         mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailmanager.root}/bin/#{cmd.to_s} "
-        mailman_cmd += "-l " if opts[:lock]
         mailman_cmd += "-q -r listproxy.command #{escape(opts.delete(:name))} " +
                        "#{opts.delete(:wlcmd)} "
-        if !opts[:args].nil? && !opts[:args].empty?
-          mailman_cmd += opts[:args].map { |arg| escape(arg) }.join(' ')
-          mailman_cmd += " "
+        if !opts[:arg].nil? && opts[:arg].length > 0
+          mailman_cmd += "#{escape(opts[:arg])} "
         end
         mailman_cmd += "2>&1"
       else

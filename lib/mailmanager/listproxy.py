@@ -1,5 +1,6 @@
 import json
 from email.Utils import parseaddr
+from collections import Callable
 from Mailman import MailList
 from Mailman import Errors
 
@@ -18,19 +19,33 @@ def userdesc_for(member):
     userdesc.fullname, userdesc.address = parseaddr(member)
     return userdesc
 
+def unwindattrs(obj, attrs, *args):
+    if not attrs.count('.'):
+        attr = getattr(obj, attrs)
+        if isinstance(attr, Callable):
+            return attr(*args)
+        else:
+            return attr
+    else:
+        attr, nextattrs = attrs.split('.', 1)
+        nextobj = getattr(obj, attr)
+        return unwindattrs(nextobj, nextattrs, *args)
+
 needs_userdesc = dict(AddMember=True, ApprovedAddMember=True)
 needs_save = dict(AddMember=True, ApprovedAddMember=True,
-                  DeleteMember=True, ApprovedDeleteMember=True)
+                  DeleteMember=True, ApprovedDeleteMember=True,
+                  moderator_append=True, moderator_remove=True)
 
 def command(mlist, cmd, *args):
     result = {}
     try:
-        method = getattr(mlist, cmd)
+        if needs_save.get(cmd.replace('.','_'), False):
+            mlist.Lock()
         if needs_userdesc.get(cmd, False):
-            result['return'] = method(userdesc_for(args[0]))
+            result['return'] = unwindattrs(mlist, cmd, userdesc_for(args[0]))
         else:
-            result['return'] = method(*args)
-        if needs_save.get(cmd, False):
+            result['return'] = unwindattrs(mlist, cmd, *args)
+        if needs_save.get(cmd.replace('.','_'), False):
             mlist.Save()
     except TypeError as err:
         error_msg = '%s' % err

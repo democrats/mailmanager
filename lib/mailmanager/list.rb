@@ -29,12 +29,12 @@ module MailManager
     end
 
     def regular_members
-      result = lib.regular_members_of(self)
+      result = lib.regular_members(self)
       result['return']
     end
 
     def digest_members
-      result = lib.digest_members_of(self)
+      result = lib.digest_members(self)
       result['return']
     end
 
@@ -52,6 +52,21 @@ module MailManager
 
     def approved_delete_member(email, name='')
       delete_member_using(:approved_delete_member, email)
+    end
+
+    def moderators
+      result = lib.moderators(self)
+      result['return']
+    end
+
+    def add_moderator(email)
+      result = lib.add_moderator(self, email)
+      result['result'].to_sym
+    end
+
+    def delete_moderator(email)
+      result = lib.delete_moderator(self, email)
+      result['result'].to_sym
     end
 
     private

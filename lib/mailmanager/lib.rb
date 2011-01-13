@@ -90,44 +90,65 @@ module MailManager
       parse_json_output(out)
     end
 
+    def inject(list, message, queue=nil)
+      cmd = :inject
+      params = {:listname => list.name, :stdin => message}
+      params['queue'] = queue unless queue.nil?
+      command(cmd, params)
+    end
+
     def command(cmd, opts = {})
+      mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} "
+      # delete opts as we handle them explicitly
+      stdin = nil
+      stdin = opts.delete(:stdin) if opts.has_key?(:stdin)
       case cmd
       when :newlist
-        mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} -q "
+        mailman_cmd += "-q "
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         raise ArgumentError, "Missing :admin_email param" if opts[:admin_email].nil?
         raise ArgumentError, "Missing :admin_password param" if opts[:admin_password].nil?
         mailman_cmd_suffix = [:name, :admin_email, :admin_password].map { |key|
           escape(opts.delete(key))
         }.join(' ')
-        mailman_cmd += opts.keys.map { |k| "--#{escape(k)}=#{escape(opts[k])}" }.join(' ')
-        mailman_cmd += "#{mailman_cmd_suffix} 2>&1"
+        mailman_cmd += "#{mailman_cmd_suffix} "
       when :withlist
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         proxy_path = File.dirname(__FILE__)
-        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailmanager.root}/bin/#{cmd.to_s} "
+        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailman_cmd}"
         mailman_cmd += "-q -r listproxy.command #{escape(opts.delete(:name))} " +
                        "#{opts.delete(:wlcmd)} "
         if !opts[:arg].nil? && opts[:arg].length > 0
-          mailman_cmd += "#{escape(opts[:arg])} "
+          mailman_cmd += "#{escape(opts.delete(:arg))} "
         end
-        mailman_cmd += "2>&1"
-      else
-        # no options allowed in the fallback case
-        mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} 2>&1"
       end
 
-      puts "Running mailman command: #{mailman_cmd}" if MailManager.debug
-      out = run_command(mailman_cmd)
+      # assume any leftover opts are POSIX-style args
+      mailman_cmd += opts.keys.map { |k| "--#{k}=#{escape(opts[k])}" }.join(' ')
+      mailman_cmd += ' ' if mailman_cmd[-1,1] != ' '
+      mailman_cmd += "2>&1"
+      if MailManager.debug
+        puts "Running mailman command: #{mailman_cmd}"
+        puts " with stdin: #{stdin}" unless stdin.nil?
+      end
+      out, process = run_command(mailman_cmd, stdin)
 
-      if !$?.nil? && $?.exitstatus > 0
+      if process.exitstatus > 0
         raise MailManager::MailmanExecuteError.new(mailman_cmd + ':' + out.to_s)
       end
       out
     end
 
-    def run_command(mailman_cmd)
-      `#{mailman_cmd}`.chomp
+    def run_command(mailman_cmd, stdindata=nil)
+      output = nil
+      process = Open4::popen4(mailman_cmd) do |pid, stdin, stdout, stderr|
+        if !stdindata.nil?
+          stdin.puts(stdindata)
+          stdin.close
+        end
+        output = stdout.gets
+      end
+      [output, process]
     end
 
     def escape(s)

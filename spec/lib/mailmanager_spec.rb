@@ -28,8 +28,7 @@ describe "MailManager" do
 
       context "with a valid Mailman dir" do
         let(:mailman_path) { '/usr/local/mailman' }
-        let(:bin_files) { ['add_members', 'remove_members', 'list_lists',
-                          'list_members', 'newlist', 'rmlist', 'sync_members'] }
+        let(:bin_files) { ['list_lists', 'newlist', 'inject'] }
 
         before :each do
           Dir.stub(:exist?).with(mailman_path).and_return(true)
@@ -40,7 +39,7 @@ describe "MailManager" do
         end
 
         it "should raise an error if one of the bin files is missing" do
-          File.stub(:exist?).with("#{mailman_path}/bin/add_members").and_return(false)
+          File.stub(:exist?).with("#{mailman_path}/bin/inject").and_return(false)
           lambda {
             MailManager.root = mailman_path
             MailManager::Base.instance

@@ -4,10 +4,12 @@ describe MailManager::Lib do
   let(:mailmanager) { mock(MailManager) }
   let(:subject)     { MailManager::Lib.new }
   let(:fake_root)   { '/foo/bar' }
+  let(:process)     { mock(Process::Status) }
 
   before :each do
     subject.stub(:mailmanager).and_return(mailmanager)
     mailmanager.stub(:root).and_return(fake_root)
+    process.stub(:exitstatus).and_return(0)
   end
 
   describe "#lists" do
@@ -18,8 +20,8 @@ describe MailManager::Lib do
      BarBar - Dummy list
     Mailman - Mailman site list
 EOF
-      subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1").
-        and_return(list_result)
+      subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1", nil).
+        and_return([list_result,process])
       subject.lists.should have(3).lists
     end
   end
@@ -73,8 +75,8 @@ EOF
 
       it "should create the list" do
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1").
-          and_return(new_list_return)
+          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          and_return([new_list_return,process])
         subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
       end
@@ -95,8 +97,8 @@ EOF
     describe "#regular_members" do
       it "should ask Mailman for the regular list members" do
         subject.should_receive(:run_command).
-          with(cmd+"getRegularMemberKeys 2>&1").
-          and_return(JSON.generate(regular_members))
+          with(cmd+"getRegularMemberKeys 2>&1", nil).
+          and_return([JSON.generate(regular_members),process])
         subject.regular_members(list).should == regular_members
       end
     end
@@ -104,8 +106,8 @@ EOF
     describe "#digest_members" do
       it "should ask Mailman for the digest list members" do
         subject.should_receive(:run_command).
-          with(cmd+"getDigestMemberKeys 2>&1").
-          and_return(JSON.generate(digest_members))
+          with(cmd+"getDigestMemberKeys 2>&1", nil).
+          and_return([JSON.generate(digest_members),process])
         subject.digest_members(list).should == digest_members
       end
     end
@@ -115,8 +117,8 @@ EOF
         new_member = 'newb@dnc.org'
         result = {"result" => "pending_confirmation"}
         subject.should_receive(:run_command).
-          with(cmd+"AddMember \"#{new_member}\" 2>&1").
-          and_return(JSON.generate(result))
+          with(cmd+"AddMember \"#{new_member}\" 2>&1", nil).
+          and_return([JSON.generate(result),process])
         subject.add_member(list, new_member).should == result
       end
     end
@@ -126,8 +128,8 @@ EOF
         new_member = 'newb@dnc.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
-          with(cmd+"ApprovedAddMember \"#{new_member}\" 2>&1").
-          and_return(JSON.generate(result))
+          with(cmd+"ApprovedAddMember \"#{new_member}\" 2>&1", nil).
+          and_return([JSON.generate(result),process])
         subject.approved_add_member(list, new_member).should == result
       end
     end
@@ -137,8 +139,8 @@ EOF
         former_member = 'oldie@ofa.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
-          with(cmd+"DeleteMember \"#{former_member}\" 2>&1").
-          and_return(JSON.generate(result))
+          with(cmd+"DeleteMember \"#{former_member}\" 2>&1", nil).
+          and_return([JSON.generate(result),process])
         subject.delete_member(list, former_member).should == result
       end
     end
@@ -148,8 +150,8 @@ EOF
         former_member = 'oldie@ofa.org'
         result = {"result" => "success"}
         subject.should_receive(:run_command).
-          with(cmd+"ApprovedDeleteMember \"#{former_member}\" 2>&1").
-          and_return(JSON.generate(result))
+          with(cmd+"ApprovedDeleteMember \"#{former_member}\" 2>&1", nil).
+          and_return([JSON.generate(result),process])
         subject.approved_delete_member(list, former_member).should == result
       end
     end

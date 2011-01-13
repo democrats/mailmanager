@@ -2,6 +2,7 @@ require "singleton"
 require "rubygems"
 require "bundler/setup"
 require "json"
+require "open4"
 
 require 'mailmanager/lib'
 require 'mailmanager/list'
@@ -30,8 +31,7 @@ module MailManager
   class Base
     include Singleton
 
-    REQUIRED_BIN_FILES = ['add_members', 'remove_members', 'list_lists',
-                          'list_members', 'newlist', 'rmlist', 'sync_members']
+    REQUIRED_BIN_FILES = ['list_lists', 'newlist', 'inject']
 
     def initialize
       raise "Must set MailManager.root before calling #{self.class}.instance" if MailManager.root.nil?

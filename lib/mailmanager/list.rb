@@ -69,6 +69,10 @@ module MailManager
       result['result'].to_sym
     end
 
+    def inject(message)
+      lib.inject(self, message)
+    end
+
     private
 
     def add_member_using(method, email, name)

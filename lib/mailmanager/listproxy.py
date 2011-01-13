@@ -19,7 +19,8 @@ def userdesc_for(member):
     return userdesc
 
 needs_userdesc = dict(AddMember=True, ApprovedAddMember=True)
-needs_save = dict(AddMember=True, ApprovedAddMember=True)
+needs_save = dict(AddMember=True, ApprovedAddMember=True,
+                  DeleteMember=True, ApprovedDeleteMember=True)
 
 def command(mlist, cmd, *args):
     result = {}
@@ -41,6 +42,8 @@ def command(mlist, cmd, *args):
         print json.dumps({'result': 'pending_confirmation'})
     except Errors.MMAlreadyAMember as err:
         print json.dumps({'result': 'already_a_member'})
+    except Errors.MMNeedApproval as err:
+        print json.dumps({'result': 'needs_approval'})
     except Exception as err:
         error_msg = '%s: %s' % (type(err), err)
         print json.dumps({'error': error_msg})

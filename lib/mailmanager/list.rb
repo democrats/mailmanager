@@ -24,6 +24,11 @@ module MailManager
       lib.create_list(params)
     end
 
+    def address
+      result = lib.list_address(self)
+      result['return']
+    end
+
     def members
       regular_members + digest_members
     end
@@ -69,8 +74,15 @@ module MailManager
       result['result'].to_sym
     end
 
-    def inject(message)
-      lib.inject(self, message)
+    def inject(from, subject, message)
+      inject_message =<<EOF
+From: #{from}
+To: #{address}
+Subject: #{subject}
+
+#{message}
+EOF
+      lib.inject(self, inject_message)
     end
 
     private

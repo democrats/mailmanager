@@ -9,6 +9,7 @@ require 'mailmanager/list'
 
 module MailManager
   @root = nil
+  @python = '/usr/bin/env python'
   @debug = ENV['MAILMANAGER_DEBUG'] =~ /^(?:1|true|y|yes|on)$/i ? true : false
 
   def self.root=(root)
@@ -17,6 +18,14 @@ module MailManager
 
   def self.root
     @root
+  end
+
+  def self.python=(python)
+    @python = python
+  end
+
+  def self.python
+    @python
   end
 
   def self.debug
@@ -43,6 +52,14 @@ module MailManager
       @lib = MailManager::Lib.new
     end
 
+    def python=(python)
+      MailManager.python = python
+    end
+
+    def python
+      MailManager.python
+    end
+
     def root
       MailManager.root
     end
@@ -51,8 +68,17 @@ module MailManager
       @lib.lists
     end
 
+    def list_names
+      lists.map { |list| list.name }
+    end
+
     def create_list(params)
       MailManager::List.create(params)
+    end
+
+    def get_list(list_name)
+      raise "#{list_name} list does not exist" unless list_names.include?(list_name.downcase)
+      MailManager::List.new(list_name)
     end
   end
 

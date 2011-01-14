@@ -27,6 +27,12 @@ module MailManager
       parse_output(cmd, out)
     end
 
+    def list_address(list)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :getListAddress)
+      parse_json_output(out)
+    end
+
     def regular_members(list)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :getRegularMemberKeys)
@@ -93,7 +99,7 @@ module MailManager
     def inject(list, message, queue=nil)
       cmd = :inject
       params = {:listname => list.name, :stdin => message}
-      params['queue'] = queue unless queue.nil?
+      params[:queue] = queue unless queue.nil?
       command(cmd, params)
     end
 
@@ -115,7 +121,7 @@ module MailManager
       when :withlist
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         proxy_path = File.dirname(__FILE__)
-        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailman_cmd}"
+        mailman_cmd = "PYTHONPATH=#{proxy_path} #{MailManager.python} #{mailman_cmd}"
         mailman_cmd += "-q -r listproxy.command #{escape(opts.delete(:name))} " +
                        "#{opts.delete(:wlcmd)} "
         if !opts[:arg].nil? && opts[:arg].length > 0
@@ -146,7 +152,7 @@ module MailManager
           stdin.puts(stdindata)
           stdin.close
         end
-        output = stdout.gets
+        output = stdout.read
       end
       [output, process]
     end
@@ -170,10 +176,12 @@ module MailManager
         return_obj = MailManager::List.new(list_name)
       when :list_lists
         lists = []
+        puts "Output from Mailman:\n#{output}" if MailManager.debug
         output.split("\n").each do |line|
           next if line =~ /^\d+ matching mailing lists found:$/
           /^\s*(.+?)\s+-\s+(.+)$/.match(line) do |m|
-            lists << MailManager::List.new(m[1])
+            puts "Found list #{m[1]}" if MailManager.debug
+            lists << MailManager::List.new(m[1].downcase)
           end
         end
         return_obj = lists

@@ -1,9 +1,9 @@
 spec = Gem::Specification.new do |s|
   s.name = 'mailmanager'
-  s.version = '1.0.0'
+  s.version = '1.0.7'
   s.summary = "GNU Mailman wrapper for Ruby"
   s.description = %{Ruby wrapper library for GNU Mailman's admin functions}
-  s.files = Dir['lib/**/*.rb'] + Dir['spec/**/*.rb']
+  s.files = Dir['lib/**/*.rb'] + Dir['lib/**/*.py'] + Dir['spec/**/*.rb']
   s.require_path = 'lib'
   s.has_rdoc = false
   s.author = "Wes Morgan"

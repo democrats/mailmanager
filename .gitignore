@@ -1,2 +1,4 @@
 *.pyc
 pkg/mailmanager-*.gem
+html/*
+doc/*

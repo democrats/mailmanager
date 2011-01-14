@@ -1,15 +1,9 @@
-# Add the directory containing this file to the start of the load path if it
-# isn't there already.
-#$:.unshift(File.dirname(__FILE__)) unless
-#  $:.include?(File.dirname(__FILE__)) ||
-#    $:.include?(File.expand_path(File.dirname(__FILE__)))
-
 module MailManager
 
-  class MailmanExecuteError < StandardError
+  class MailmanExecuteError < StandardError #:nodoc:
   end
 
-  class Lib
+  class Lib #:nodoc:all
 
     def mailmanager
       MailManager::Base.instance

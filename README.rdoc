@@ -1,7 +1,8 @@
 = MailManager
 
 MailManager is a Ruby wrapper for the GNU Mailman mailing list manager. It exposes
-some administrative functions to Ruby. See the API docs for details.
+some administrative functions to Ruby. See the API docs[http://rdoc.info/github/dnclabs/mailmanager/master/frames]
+for details.
 It is licensed under the New BSD License (see the LICENSE file for details).
 
 MailManager has been tested with Mailman 2.1.14. It has NOT been tested with any

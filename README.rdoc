@@ -32,7 +32,7 @@ check your Python version before using this.
 
 == Author
 
-- Wes Morgan
+- Wes Morgan (cap10morgan on GitHub)
 
 Copyright 2011 Democratic National Committee,
 All Rights Reserved.

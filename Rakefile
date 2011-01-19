@@ -20,10 +20,10 @@ task :inabox => :build do
   system "gem inabox pkg/mailmanager-#{MailManager::VERSION}.gem"
 end
 
-#desc "Push gem to rubygems.org"
-#task :release => :build do
-  #system "gem push pkg/mailmanager-#{MailManager::VERSION}.gem"
-#end
+desc "Push gem to rubygems.org"
+task :release => :build do
+  system "gem push pkg/mailmanager-#{MailManager::VERSION}.gem"
+end
 
 Rake::RDocTask.new do |rd|
   rd.main = "lib/mailmanager.rb"

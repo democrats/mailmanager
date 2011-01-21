@@ -97,6 +97,12 @@ module MailManager
       command(cmd, params)
     end
 
+    def web_page_url(list)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => 'web_page_url')
+      parse_json_output(out)
+    end
+
     def command(cmd, opts = {})
       mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} "
       # delete opts as we handle them explicitly

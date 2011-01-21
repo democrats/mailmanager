@@ -109,6 +109,14 @@ EOF
       lib.inject(self, inject_message)
     end
 
+    # Returns the info URL for the list
+    def info_url
+      result = lib.web_page_url(self)
+      root = result['result']
+      root += "/" unless root[-1,1] == '/'
+      "#{root}listinfo/#{name}"
+    end
+
     private
 
     def add_member_using(method, email, name)

@@ -112,7 +112,7 @@ EOF
     # Returns the info URL for the list
     def info_url
       result = lib.web_page_url(self)
-      root = result['result']
+      root = result['return']
       root += "/" unless root[-1,1] == '/'
       "#{root}listinfo/#{name}"
     end

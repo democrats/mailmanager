@@ -92,69 +92,129 @@ EOF
     let(:digest_members)  { ['them@that.net'] }
 
     let(:cmd) { "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
+                "/usr/bin/env python " +
                 "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " }
 
     describe "#regular_members" do
       it "should ask Mailman for the regular list members" do
-        subject.should_receive(:run_command).
-          with(cmd+"getRegularMemberKeys 2>&1", nil).
-          and_return([JSON.generate(regular_members),process])
-        subject.regular_members(list).should == regular_members
+        test_lib_method(:regular_members, :getRegularMemberKeys, regular_members)
       end
     end
 
     describe "#digest_members" do
       it "should ask Mailman for the digest list members" do
-        subject.should_receive(:run_command).
-          with(cmd+"getDigestMemberKeys 2>&1", nil).
-          and_return([JSON.generate(digest_members),process])
-        subject.digest_members(list).should == digest_members
+        test_lib_method(:digest_members, :getDigestMemberKeys, digest_members)
       end
     end
 
     describe "#add_member" do
       it "should ask Mailman to add the member to the list" do
         new_member = 'newb@dnc.org'
-        result = {"result" => "pending_confirmation"}
-        subject.should_receive(:run_command).
-          with(cmd+"AddMember \"#{new_member}\" 2>&1", nil).
-          and_return([JSON.generate(result),process])
-        subject.add_member(list, new_member).should == result
+        test_lib_setter(:add_member, new_member)
       end
     end
 
     describe "#approved_add_member" do
       it "should ask Mailman to add the member to the list" do
         new_member = 'newb@dnc.org'
-        result = {"result" => "success"}
-        subject.should_receive(:run_command).
-          with(cmd+"ApprovedAddMember \"#{new_member}\" 2>&1", nil).
-          and_return([JSON.generate(result),process])
-        subject.approved_add_member(list, new_member).should == result
+        test_lib_setter(:approved_add_member, new_member)
       end
     end
 
     describe "#delete_member" do
       it "should ask Mailman to delete the member from the list" do
         former_member = 'oldie@ofa.org'
-        result = {"result" => "success"}
-        subject.should_receive(:run_command).
-          with(cmd+"DeleteMember \"#{former_member}\" 2>&1", nil).
-          and_return([JSON.generate(result),process])
-        subject.delete_member(list, former_member).should == result
+        test_lib_setter(:delete_member, former_member)
       end
     end
 
     describe "#approved_delete_member" do
       it "should ask Mailman to delete the member from the list" do
         former_member = 'oldie@ofa.org'
-        result = {"result" => "success"}
-        subject.should_receive(:run_command).
-          with(cmd+"ApprovedDeleteMember \"#{former_member}\" 2>&1", nil).
-          and_return([JSON.generate(result),process])
-        subject.approved_delete_member(list, former_member).should == result
+        test_lib_setter(:approved_delete_member, former_member)
+      end
+    end
+
+    describe "#moderators" do
+      it "should ask Mailman for the list's moderators" do
+        test_lib_method(:moderators, :moderator, ['phb@bigcorp.com', 'nhb@smallstartup.com'])
+      end
+    end
+
+    describe "#add_moderator" do
+      it "should ask Mailman to add the moderator to the list" do
+        subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => []})
+        test_lib_method(:add_moderator, 'moderator.append', nil, 'foo@bar.com')
+      end
+
+      it "should return 'already_a_moderator' if they already a moderator" do
+        result = {'result' => 'already_a_moderator'}
+        subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['foo@bar.com']})
+        subject.add_moderator(list, 'foo@bar.com').should == result
+      end
+    end
+
+    describe "#delete_moderator" do
+      it "should ask Mailman to delete the moderator from the list" do
+        subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['foo@bar.com']})
+        test_lib_method(:delete_moderator, 'moderator.remove', nil, 'foo@bar.com')
+      end
+
+      it "should return 'not_a_moderator' if they are not already a moderator" do
+        result = {'result' => 'not_a_moderator'}
+        subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['other@bar.com']})
+        subject.delete_moderator(list, 'foo@bar.com').should == result
+      end
+    end
+
+    describe "#web_page_url" do
+      it "should ask Mailman for the list's web address" do
+        test_lib_attr(:web_page_url, "http://bar.com/mailman/listinfo/foo")
+      end
+    end
+
+    describe "#request_email" do
+      it "should ask Mailman for the request email address" do
+        test_lib_getter(:request_email, "foo-request@bar.com")
       end
     end
   end
 
+  def test_lib_getter(lib_method, return_value, *args)
+    cc_mailman_method = camel_case("get_#{lib_method.to_s}")
+    test_lib_method(lib_method, cc_mailman_method, return_value, *args)
+  end
+
+  def test_lib_setter(lib_method, *args)
+    cc_mailman_method = camel_case(lib_method.to_s)
+    test_lib_method(lib_method, cc_mailman_method, nil, *args)
+  end
+
+  def test_lib_attr(lib_attr, return_value)
+    test_lib_method(lib_attr, lib_attr, return_value)
+  end
+
+  def test_lib_method(lib_method, mailman_method, return_value=nil, *args)
+    if return_value.is_a?(Hash)
+      result = return_value
+    else
+      result = {"result" => "success"}
+      result["return"] = return_value unless return_value.nil?
+    end
+    subject.should_receive(:run_command).
+      with(cmd+"#{mailman_method.to_s} #{cmd_args(*args)}2>&1", nil).
+      and_return([JSON.generate(result),process])
+    subject.send(lib_method, list, *args).should == result
+  end
+
+  def camel_case(s)
+    s.gsub(/^[a-z]|[\s_]+[a-z]/) { |a| a.upcase }.gsub(/[\s_]/, '')
+  end
+
+  def cmd_args(*args)
+    arg_str = args.map { |a|
+      MailManager::Lib::escape(a)
+    }.join(' ')
+    arg_str += ' ' if arg_str.length > 0
+  end
 end

@@ -165,10 +165,13 @@ module MailManager
       [output, process]
     end
 
-    def escape(s)
-      # no idea what this does, stole it from the ruby-git gem
+    def self.escape(s)
       escaped = s.to_s.gsub('\'', '\'\\\'\'')
       %Q{"#{escaped}"}
+    end
+
+    def escape(s)
+      self.class.escape(s)
     end
 
     def parse_output(mailman_cmd, output)

@@ -17,4 +17,7 @@ spec = Gem::Specification.new do |s|
   s.homepage = "http://github.com/dnclabs/mailmanager"
   s.add_dependency('json', '~>1.4.6')
   s.add_dependency('open4', '~>1.0.1')
+  s.add_development_dependency('rspec', '~>2.4.0')
+  s.add_development_dependency('ZenTest', '~>4.4.2')
+  s.add_development_dependency('ruby-debug19')
 end

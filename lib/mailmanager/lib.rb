@@ -83,7 +83,9 @@ module MailManager
     end
 
     def delete_moderator(list, email)
-      raise "#{email} is not a moderator" unless moderators(list)['return'].include?(email)
+      unless moderators(list)['return'].include?(email)
+        return {'result' => 'not_a_moderator'}
+      end
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => 'moderator.remove',
                     :arg => email)

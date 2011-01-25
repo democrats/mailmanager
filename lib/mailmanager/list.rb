@@ -117,6 +117,11 @@ EOF
       "#{root}listinfo/#{name}"
     end
 
+    def request_email
+      result = lib.request_email(self)
+      result['return']
+    end
+
     private
 
     def add_member_using(method, email, name)

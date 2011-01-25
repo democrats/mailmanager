@@ -1,4 +1,9 @@
-Current version is 1.0.8
+Current version is 1.0.11
+
+changes since 1.0.8
+- added more list metadata methods (see API docs)
+- cleaned up test suite & added more tests
+- cleaned up bundler and gemspec dependencies
 
 changes since 1.0.7
 - added documentation

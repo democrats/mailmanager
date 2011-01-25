@@ -178,6 +178,12 @@ EOF
         test_lib_getter(:request_email, "foo-request@bar.com")
       end
     end
+
+    describe "#description" do
+      it "should ask Mailman for the list's description" do
+        test_lib_attr(:description, "this is a mailing list")
+      end
+    end
   end
 
   def test_lib_getter(lib_method, return_value, *args)

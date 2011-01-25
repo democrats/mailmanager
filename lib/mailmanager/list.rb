@@ -123,6 +123,11 @@ EOF
       result['return']
     end
 
+    def description
+      result = lib.description(self)
+      result['return']
+    end
+
     private
 
     def add_member_using(method, email, name)

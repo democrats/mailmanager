@@ -84,14 +84,15 @@ module MailManager
       result['return']
     end
 
-    # Adds a new moderator to the list
+    # Adds a new moderator to the list. Returns :already_a_moderator if the
+    # requested new moderator is already a moderator.
     def add_moderator(email)
       result = lib.add_moderator(self, email)
       result['result'].to_sym
     end
 
-    # Deletes a moderator from the list. Will raise an exception if the
-    # moderator doesn't exist yet.
+    # Deletes a moderator from the list. Returns :not_a_moderator if the
+    # requested deletion isn't a moderator.
     def delete_moderator(email)
       result = lib.delete_moderator(self, email)
       result['result'].to_sym

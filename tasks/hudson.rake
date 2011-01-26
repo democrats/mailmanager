@@ -1,4 +1,4 @@
-if Rails.env =='test'
+if ENV['RUBY_ENV'] == 'test'
 
   namespace :hudson do
     task :spec => ["hudson:setup:rspec", 'db:migrate', 'rake:spec']

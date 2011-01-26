@@ -1,4 +1,7 @@
-import json
+try:
+  import json
+except ImportError:
+  import simplejson as json
 from email.Utils import parseaddr
 from collections import Callable
 from Mailman import MailList

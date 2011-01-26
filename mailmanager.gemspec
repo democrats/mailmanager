@@ -26,4 +26,5 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('rspec', '~>2.4.0')
   s.add_development_dependency('ZenTest', '~>4.4.2')
   s.add_development_dependency('ruby-debug19')
+  s.add_development_dependency('ci_reporter')
 end

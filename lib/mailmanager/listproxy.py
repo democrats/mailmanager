@@ -3,7 +3,14 @@ try:
 except ImportError:
   import simplejson as json
 from email.Utils import parseaddr
-from collections import Callable
+try:
+  from collections import Callable
+except ImportError:
+  def iscallable(attr):
+    return callable(attr)
+else:
+  def iscallable(attr):
+    return isinstance(attr, Callable)
 from Mailman import MailList
 from Mailman import Errors
 
@@ -25,7 +32,7 @@ def userdesc_for(member):
 def unwindattrs(obj, attrs, *args):
     if not attrs.count('.'):
         attr = getattr(obj, attrs)
-        if isinstance(attr, Callable):
+        if iscallable(attr):
             return attr(*args)
         else:
             return attr

@@ -40,6 +40,8 @@ PLATFORMS
 
 DEPENDENCIES
   ZenTest (~> 4.4.2)
+  json (~> 1.4.6)
   mailmanager!
+  open4 (~> 1.0.1)
   rspec (~> 2.4.0)
   ruby-debug19

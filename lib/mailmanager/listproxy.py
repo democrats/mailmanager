@@ -47,19 +47,19 @@ def command(mlist, cmd, *args):
             result['return'] = unwindattrs(mlist, cmd, *args)
         if needs_save.get(cmd.replace('.','_'), False):
             mlist.Save()
-    except TypeError as err:
+    except TypeError, err:
         error_msg = '%s' % err
         print json.dumps({'error': error_msg})
-    except AttributeError as err:
+    except AttributeError, err:
         error_msg = 'AttributeError: %s' % err
         print json.dumps({'error': error_msg})
-    except Errors.MMSubscribeNeedsConfirmation as err:
+    except Errors.MMSubscribeNeedsConfirmation, err:
         print json.dumps({'result': 'pending_confirmation'})
-    except Errors.MMAlreadyAMember as err:
+    except Errors.MMAlreadyAMember, err:
         print json.dumps({'result': 'already_a_member'})
-    except Errors.MMNeedApproval as err:
+    except Errors.MMNeedApproval, err:
         print json.dumps({'result': 'needs_approval'})
-    except Exception as err:
+    except Exception, err:
         error_msg = '%s: %s' % (type(err), err)
         print json.dumps({'error': error_msg})
     else:

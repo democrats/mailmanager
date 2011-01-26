@@ -1,4 +1,7 @@
-Current version is 1.0.11
+Current version is 1.0.12
+
+changes since 1.0.11
+- should now be compatible with Python 2.4+ (was 2.6+); 2.4 requires simplejson
 
 changes since 1.0.8
 - added more list metadata methods (see API docs)

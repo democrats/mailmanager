@@ -142,6 +142,13 @@ EOF
       result['return']
     end
 
+    # Sets the list's subject prefix to a new value. Remember to leave a space
+    # at the end (assuming you want one, and you probably do).
+    def subject_prefix=(sp)
+      result = lib.set_subject_prefix(self, sp)
+      result['result'].to_sym
+    end
+
     private
 
     def add_member_using(method, email, name)

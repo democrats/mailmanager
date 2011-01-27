@@ -131,6 +131,12 @@ module MailManager
       parse_json_output(out)
     end
 
+    def set_subject_prefix(list, sp)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :subject_prefix, :arg => sp)
+      parse_json_output(out)
+    end
+
     def command(cmd, opts = {})
       mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} "
       # delete opts as we handle them explicitly

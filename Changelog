@@ -1,7 +1,8 @@
 Current version is 1.0.13
 
 changes since 1.0.12
-- added subject_prefix method to List
+- added list description= setter method to List class
+- added subject_prefix & subject_prefix= methods to List class
 
 changes since 1.0.11
 - should now be compatible with Python 2.4+ (was 2.6+); 2.4 requires simplejson

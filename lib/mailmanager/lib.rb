@@ -99,6 +99,8 @@ module MailManager
       command(cmd, params)
     end
 
+    # TODO: DRY this up!
+
     def web_page_url(list)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => 'web_page_url')
@@ -114,6 +116,18 @@ module MailManager
     def description(list)
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => :description)
+      parse_json_output(out)
+    end
+
+    def subject_prefix(list)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :subject_prefix)
+      parse_json_output(out)
+    end
+
+    def set_description(list, desc)
+      cmd = :withlist
+      out = command(cmd, :name => list.name, :wlcmd => :description, :arg => desc)
       parse_json_output(out)
     end
 

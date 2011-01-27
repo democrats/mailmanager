@@ -184,6 +184,12 @@ EOF
         test_lib_attr(:description, "this is a mailing list")
       end
     end
+
+    describe "#subject_prefix" do
+      it "should ask Mailman for the list's subject prefix" do
+        test_lib_attr(:subject_prefix, "[Foo] ")
+      end
+    end
   end
 
   def test_lib_getter(lib_method, return_value, *args)

@@ -118,13 +118,27 @@ EOF
       "#{root}listinfo/#{name}"
     end
 
+    # Returns the request email address for the list
     def request_email
       result = lib.request_email(self)
       result['return']
     end
 
+    # Returns the list description
     def description
       result = lib.description(self)
+      result['return']
+    end
+
+    # Sets the list description to a new value
+    def description=(desc)
+      result = lib.set_description(self, desc)
+      result['result'].to_sym
+    end
+
+    # Returns the list's subject prefix
+    def subject_prefix
+      result = lib.subject_prefix(self)
       result['return']
     end
 

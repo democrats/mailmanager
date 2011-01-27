@@ -1,16 +1,16 @@
 try:
-  import json
+    import json
 except ImportError:
-  import simplejson as json
+    import simplejson as json
 from email.Utils import parseaddr
 try:
-  from collections import Callable
+    from collections import Callable
 except ImportError:
-  def iscallable(attr):
-    return callable(attr)
+    def iscallable(attr):
+        return callable(attr)
 else:
-  def iscallable(attr):
-    return isinstance(attr, Callable)
+    def iscallable(attr):
+        return isinstance(attr, Callable)
 from Mailman import MailList
 from Mailman import Errors
 
@@ -35,7 +35,11 @@ def unwindattrs(obj, attrs, *args):
         if iscallable(attr):
             return attr(*args)
         else:
-            return attr
+            if len(args) > 0:
+                # must be a setter
+                obj.attr = args[0]
+            else:
+                return attr
     else:
         attr, nextattrs = attrs.split('.', 1)
         nextobj = getattr(obj, attr)
@@ -45,18 +49,25 @@ needs_userdesc = dict(AddMember=True, ApprovedAddMember=True)
 needs_save = dict(AddMember=True, ApprovedAddMember=True,
                   DeleteMember=True, ApprovedDeleteMember=True,
                   moderator_append=True, moderator_remove=True)
+needs_save_with_arg = dict(description=True)
 
 def command(mlist, cmd, *args):
     result = {}
     try:
-        if needs_save.get(cmd.replace('.','_'), False):
-            mlist.Lock()
+        if (needs_save.get(cmd.replace('.','_'), False) or
+            (needs_save_with_arg.get(cmd.replace('.','_'), False) and
+            len(args) > 0)):
+                print "Locking list"
+                mlist.Lock()
         if needs_userdesc.get(cmd, False):
             result['return'] = unwindattrs(mlist, cmd, userdesc_for(args[0]))
         else:
             result['return'] = unwindattrs(mlist, cmd, *args)
-        if needs_save.get(cmd.replace('.','_'), False):
-            mlist.Save()
+        if (needs_save.get(cmd.replace('.','_'), False) or
+            (needs_save_with_arg.get(cmd.replace('.','_'), False) and
+            len(args) > 0)):
+                print "Saving list"
+                mlist.Save()
     except TypeError, err:
         error_msg = '%s' % err
         print json.dumps({'error': error_msg})

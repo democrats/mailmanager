@@ -68,7 +68,7 @@ Exposing new list properties works something like this:
     This one is a bit different because the attr name is the same for gets and sets,
     but we need to lock and save when it's a set, and we can guess that it's a set
     when there is an argument passed, and a get when there is no argument. S-M-R-T
-  - For an attribute on a sub-object: Huh? Look at lib.rb#add_moderator for an
+  - For a chain of attrs/methods: Huh? Look at lib.rb#add_moderator for an
     example. "moderator" is an array attribute of MailList.py, and we want to
     append a new string to it. So our "command" to listproxy.py is
     "moderator.append" with the new moderator string as the argument. listproxy is

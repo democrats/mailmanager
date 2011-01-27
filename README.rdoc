@@ -32,7 +32,7 @@ MailManager's API currently consists of a handful of methods at the top-level
 MailManager::Base class. This is where you'll find create_list and get_list. These
 both return instances of MailManager::List, which is really where the action is.
 
-MailManager::List exposes the public Ruby API for interacting with Mailman's lists.
+MailManager::List contains the public Ruby API for interacting with Mailman's lists.
 It exposes the methods and attributes of Mailman's MailList.py class, but makes
 them a bit more Ruby-ish where appropriate. Not every method / attribute is
 exposed, but this is where you come in, dear contributor.
@@ -48,17 +48,17 @@ Exposing new list properties works something like this:
 - Look at Mailman's code in Mailman/MailList.py and see if the thing you want to
   expose is a method or an attribute. You'll need to know a little Python, but not
   much. Basically, a method is a callable thing and an attribute is a simple
-  property of the object. AddMember is a method, for example, while description is
-  an attribute.
+  property of the object. "AddMember" is a method, for example, while "description"
+  is an attribute.
 - If it's a method, just write a simple method in lib/mailmanager/list.rb that
   calls a method in lib.rb (just like the others do). Then go write the method
   that you call in lib/mailmanager/lib.rb, using list_address or add_member as an
   example (depending on whether you're writing a getter or a setter, respectively).
 - All methods that interact with MailList.py instances (i.e. mailing lists) use the
   withlist command, so just copy that stuff from an existing method.
-- If you're exposing an attribute (i.e. it's not callable), then use the moderator
-  methods as a guide. For example, they do their own dupe checking since the
-  MailList.py class will let you set the attribute to whatever you want. Dangerous!
+- If you're exposing an attribute, then use the moderator methods as a guide.
+  For example, they do their own dupe checking since the MailList.py class will
+  let you set the attribute to whatever you want. Dangerous!
 - If you're writing a setter, you have one more chore to make it work. You need the
   listproxy.py code to lock the list and then save it after making your requested
   change. It will do this for you if you do the following:
@@ -68,6 +68,17 @@ Exposing new list properties works something like this:
     This one is a bit different because the attr name is the same for gets and sets,
     but we need to lock and save when it's a set, and we can guess that it's a set
     when there is an argument passed, and a get when there is no argument. S-M-R-T
+  - For an attribute on a sub-object: Huh? Look at lib.rb#add_moderator for an
+    example. "moderator" is an array attribute of MailList.py, and we want to
+    append a new string to it. So our "command" to listproxy.py is
+    "moderator.append" with the new moderator string as the argument. listproxy is
+    smart enough to untangle that and get the moderator attribute and then call the
+    append method on it with your argument. But, in order to tell it to lock and
+    save the list for us, we must replace that dot in the name with an
+    underscore in the needs_save key. That's why we have "moderator_append=True"
+    in the needs_save dict in listproxy.py. So if you have a chain of attributes
+    and methods to get at the thing you're exposing, just replace the dots with
+    underscores in the needs_save dict key and you'll be all set.
 
 That should get you started hacking on the gem. If you get stuck or are trying to
 do anything more complex, please feel free to e-mail me: cap10morgan@gmail.com.

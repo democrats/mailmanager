@@ -29,21 +29,22 @@ def userdesc_for(member):
     userdesc.fullname, userdesc.address = parseaddr(member)
     return userdesc
 
-def unwindattrs(obj, attrs, *args):
-    if not attrs.count('.'):
-        attr = getattr(obj, attrs)
+def unwindattrs(obj, attrname, *args):
+    if not attrname.count('.'):
+        attr = getattr(obj, attrname)
         if iscallable(attr):
             return attr(*args)
         else:
             if len(args) > 0:
                 # must be a setter
-                obj.attr = args[0]
+                setattr(obj, attrname, args[0])
             else:
+                # must be a getter
                 return attr
     else:
-        attr, nextattrs = attrs.split('.', 1)
+        attr, nextattrname = attrname.split('.', 1)
         nextobj = getattr(obj, attr)
-        return unwindattrs(nextobj, nextattrs, *args)
+        return unwindattrs(nextobj, nextattrname, *args)
 
 needs_userdesc = dict(AddMember=True, ApprovedAddMember=True)
 needs_save = dict(AddMember=True, ApprovedAddMember=True,
@@ -57,7 +58,6 @@ def command(mlist, cmd, *args):
         if (needs_save.get(cmd.replace('.','_'), False) or
             (needs_save_with_arg.get(cmd.replace('.','_'), False) and
             len(args) > 0)):
-                print "Locking list"
                 mlist.Lock()
         if needs_userdesc.get(cmd, False):
             result['return'] = unwindattrs(mlist, cmd, userdesc_for(args[0]))
@@ -66,7 +66,6 @@ def command(mlist, cmd, *args):
         if (needs_save.get(cmd.replace('.','_'), False) or
             (needs_save_with_arg.get(cmd.replace('.','_'), False) and
             len(args) > 0)):
-                print "Saving list"
                 mlist.Save()
     except TypeError, err:
         error_msg = '%s' % err

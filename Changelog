@@ -1,4 +1,8 @@
-Current version is 1.0.13
+Current version is 1.0.14
+
+changes since 1.0.13
+- more detailed error report when creating a new list fails
+- make it a MailmanExecuteError when creating a new list fails
 
 changes since 1.0.12
 - added list description= setter method to List class

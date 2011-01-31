@@ -209,7 +209,7 @@ module MailManager
             list_name = match[1]
           end
         end
-        raise "Error getting name of newly created list" if list_name.nil?
+        raise MailmanExecuteError, "Error getting name of newly created list. Mailman sent:\n#{output}" if list_name.nil?
         return_obj = MailManager::List.new(list_name)
       when :list_lists
         lists = []

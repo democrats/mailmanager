@@ -98,7 +98,7 @@ Mailman installation is in /usr/local/mailman, you would run this command:
 Once that's done, you should be able to just run 'cucumber' in the top-level
 mailmanager directory.
 
-_MAKE SURE THIS IS NOT A MAILMAN INSTALLATION YOU CARE ABOUT!_ The Cucumber test
+<b>MAKE SURE THIS IS NOT A MAILMAN INSTALLATION YOU CARE ABOUT!</b> The Cucumber test
 suite will start by deleting all mailing lists so it can have a clean slate to
 test with.
 

@@ -1,4 +1,10 @@
-Current version is 1.0.14
+Current version is 1.0.15
+
+changes since 1.0.14
+- added a Cucumber integration test suite
+- fixed a list creation bug when Mailman outputs to an aliases db directly
+- added a delete_list method
+- raise exception when attempting to create a mailing list that already exists
 
 changes since 1.0.13
 - more detailed error report when creating a new list fails

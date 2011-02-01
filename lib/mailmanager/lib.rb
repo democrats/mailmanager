@@ -3,6 +3,9 @@ module MailManager
   class MailmanExecuteError < StandardError #:nodoc:
   end
 
+  class ListNotFoundError < StandardError #:nodoc:
+  end
+
   class Lib #:nodoc:all
 
     def mailmanager
@@ -15,8 +18,32 @@ module MailManager
       parse_output(cmd, out)
     end
 
+    def list_names
+      lists.map { |list| list.name }
+    end
+
     def create_list(params)
+      raise ArgumentError, "Missing :name param" if params[:name].nil?
+      list_name = params[:name]
       cmd = :newlist
+      # create the list
+      out = command(cmd, params)
+      # get the new list
+      begin
+        get_list(list_name)
+      rescue ListNotFoundError
+        raise MailmanExecuteError, "List creation failed: #{out}"
+      end
+    end
+
+    def get_list(list_name)
+      raise ListNotFoundError, "#{list_name} does not exist" unless list_names.include?(list_name)
+      MailManager::List.new(list_name)
+    end
+
+    def delete_list(params)
+      params = {:name => params} unless params.respond_to?(:has_key?)
+      cmd = :rmlist
       out = command(cmd, params)
       parse_output(cmd, out)
     end
@@ -141,7 +168,7 @@ module MailManager
       mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} "
       # delete opts as we handle them explicitly
       stdin = nil
-      stdin = opts.delete(:stdin) if opts.has_key?(:stdin)
+      stdin = opts.delete(:stdin) if opts.respond_to?(:has_key?) && opts.has_key?(:stdin)
       case cmd
       when :newlist
         mailman_cmd += "-q "
@@ -152,6 +179,9 @@ module MailManager
           escape(opts.delete(key))
         }.join(' ')
         mailman_cmd += "#{mailman_cmd_suffix} "
+      when :rmlist
+        raise ArgumentError, "Missing :name param" if opts[:name].nil?
+        mailman_cmd += "#{escape(opts.delete(:name))} "
       when :withlist
         raise ArgumentError, "Missing :name param" if opts[:name].nil?
         proxy_path = File.dirname(__FILE__)
@@ -211,6 +241,8 @@ module MailManager
         end
         raise MailmanExecuteError, "Error getting name of newly created list. Mailman sent:\n#{output}" if list_name.nil?
         return_obj = MailManager::List.new(list_name)
+      when :rmlist
+        return_obj = output =~ /Removing list info/
       when :list_lists
         lists = []
         puts "Output from Mailman:\n#{output}" if MailManager.debug

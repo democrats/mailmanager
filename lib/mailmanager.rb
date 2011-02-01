@@ -82,7 +82,7 @@ module MailManager
     # Only retrieves the list names, doesn't wrap them in MailManager::List
     # instances.
     def list_names
-      lists.map { |list| list.name }
+      @lib.list_names
     end
 
     # Create a new list. Returns an instance of MailManager::List. Params are:
@@ -96,8 +96,11 @@ module MailManager
     # Get an existing list as a MailManager::List instance. Raises an exception if
     # the list doesn't exist.
     def get_list(list_name)
-      raise "#{list_name} list does not exist" unless list_names.include?(list_name.downcase)
-      MailManager::List.new(list_name)
+      @lib.get_list(list_name)
+    end
+
+    def delete_list(list_name)
+      MailManager::List.delete(list_name)
     end
   end
 

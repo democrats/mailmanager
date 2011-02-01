@@ -35,6 +35,15 @@ module MailManager
       lib.create_list(params)
     end
 
+    def self.delete(list_name) #:nodoc:
+      lib.delete_list(list_name)
+    end
+
+    # Deletes the list, but not the archives
+    def delete
+      self.class.delete(self.name)
+    end
+
     # Returns the list's email address
     def address
       result = lib.list_address(self)

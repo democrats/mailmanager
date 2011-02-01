@@ -5,6 +5,13 @@ describe MailManager::Lib do
   let(:subject)     { MailManager::Lib.new }
   let(:fake_root)   { '/foo/bar' }
   let(:process)     { mock(Process::Status) }
+  let(:list_result) { <<EOF
+3 matching mailing lists found:
+        Foo - [no description available]
+     BarBar - Dummy list
+    Mailman - Mailman site list
+EOF
+  }
 
   before :each do
     subject.stub(:mailmanager).and_return(mailmanager)
@@ -14,14 +21,8 @@ describe MailManager::Lib do
 
   describe "#lists" do
     it "should return all existing lists" do
-      list_result = <<EOF 
-3 matching mailing lists found:
-        Foo - [no description available]
-     BarBar - Dummy list
-    Mailman - Mailman site list
-EOF
       subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1", nil).
-        and_return([list_result,process])
+        and_return([list_result, process])
       subject.lists.should have(3).lists
     end
   end
@@ -76,10 +77,34 @@ EOF
       it "should create the list" do
         subject.should_receive(:run_command).
           with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
-          and_return([new_list_return,process])
+          and_return([new_list_return, process])
+        subject.should_receive(:run_command).
+          with("#{fake_root}/bin/list_lists 2>&1", nil).
+          and_return([list_result, process])
         subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
       end
+
+      it "should not rely on the aliases setup output" do
+        # https://www.pivotaltracker.com/story/show/9422507
+        subject.should_receive(:run_command).
+          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          and_return(["", process])
+        subject.should_receive(:run_command).
+          with("#{fake_root}/bin/list_lists 2>&1", nil).
+          and_return([list_result, process])
+        subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
+                            :admin_password => 'qux')
+      end
+    end
+  end
+
+  describe "#delete_list" do
+    it "should delete the list" do
+      subject.should_receive(:run_command).
+        with("#{fake_root}/bin/rmlist \"foo\" 2>&1", nil).
+        and_return(["Removing list info", process])
+      subject.delete_list('foo')
     end
   end
 

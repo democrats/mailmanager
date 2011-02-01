@@ -107,11 +107,8 @@ test with.
 - Fork on GitHub
 - Make a new branch
 - Commit your feature addition or bug fix to that branch.
-- Don't mess with Rakefile, version.rb, or Changelog. (If you want to have your own
-version, that's fine but bump version in its own commit so we can ignore it when we
-pull.)
-- Add tests for it. This is important so we don't break it in a future version
-unintentionally.
+- Don't mess with Rakefile, version.rb, or Changelog. (If you want to have your own version, that's fine but bump version in its own commit so we can ignore it when we pull.)
+- Add tests for it. This is important so we don't break it in a future version unintentionally.
 - Push your changes to that branch (i.e. not master)
 - Make a pull request
 - Bask in your awesomeness

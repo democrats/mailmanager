@@ -13,7 +13,7 @@ check your Python version before using this.
 == Installation
 
   gem install mailmanager
-  
+
 == Basic Usage
 
   mm = MailManager.init('/mailman/root')
@@ -93,7 +93,7 @@ of 2.1.x, probably) to run the Cucumber integration tests. Make a symlink to the
 root directory of your Mailman install in the mailmanager directory. It should be
 named "mailman". So if you are in the top-level mailmanager directory and your
 Mailman installation is in /usr/local/mailman, you would run this command:
-    ln -s /usr/local/mailman mailman
+  ln -s /usr/local/mailman mailman
 
 Once that's done, you should be able to just run 'cucumber' in the top-level
 mailmanager directory.

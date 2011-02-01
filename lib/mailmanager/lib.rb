@@ -6,6 +6,9 @@ module MailManager
   class ListNotFoundError < StandardError #:nodoc:
   end
 
+  class ListNameConflictError < StandardError #:nodoc:
+  end
+
   class Lib #:nodoc:all
 
     def mailmanager
@@ -25,6 +28,7 @@ module MailManager
     def create_list(params)
       raise ArgumentError, "Missing :name param" if params[:name].nil?
       list_name = params[:name]
+      raise ListNameConflictError, "List \"#{list_name}\" already exists" if list_names.include?(list_name)
       cmd = :newlist
       # create the list
       out = command(cmd, params)

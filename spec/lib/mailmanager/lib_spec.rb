@@ -12,6 +12,7 @@ describe MailManager::Lib do
     Mailman - Mailman site list
 EOF
   }
+  let(:list_result_after_create) { list_result + "\n        Bar - [no description available]\n" }
 
   before :each do
     subject.stub(:mailmanager).and_return(mailmanager)
@@ -28,34 +29,41 @@ EOF
   end
 
   describe "#create_list" do
+    before :each do
+      subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1", nil).
+        and_return([list_result, process])
+    end
+
     it "should raise an argument error if list name is missing" do
       lambda {
         subject.create_list(:admin_email => 'foo@bar.baz', :admin_password => 'qux')
       }.should raise_error(ArgumentError)
     end
+
     it "should raise an argument error if list admin email is missing" do
       lambda {
-        subject.create_list(:name => 'foo', :admin_password => 'qux')
+        subject.create_list(:name => 'bar', :admin_password => 'qux')
       }.should raise_error(ArgumentError)
     end
+
     it "should raise an argument error if admin password is missing" do
       lambda {
-        subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz')
+        subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz')
       }.should raise_error(ArgumentError)
     end
 
     context "with valid list params" do
       let(:new_aliases) {
-        ['foo:              "|/foo/bar/mail/mailman post foo"',
-         'foo-admin:        "|/foo/bar/mail/mailman admin foo"',
-         'foo-bounces:      "|/foo/bar/mail/mailman bounces foo"',
-         'foo-confirm:      "|/foo/bar/mail/mailman confirm foo"',
-         'foo-join:         "|/foo/bar/mail/mailman join foo"',
-         'foo-leave:        "|/foo/bar/mail/mailman leave foo"',
-         'foo-owner:        "|/foo/bar/mail/mailman owner foo"',
-         'foo-request:      "|/foo/bar/mail/mailman request foo"',
-         'foo-subscribe:    "|/foo/bar/mail/mailman subscribe foo"',
-         'foo-unsubscribe:  "|/foo/bar/mail/mailman unsubscribe foo"']
+        ['bar:              "|/foo/bar/mail/mailman post bar"',
+         'bar-admin:        "|/foo/bar/mail/mailman admin bar"',
+         'bar-bounces:      "|/foo/bar/mail/mailman bounces bar"',
+         'bar-confirm:      "|/foo/bar/mail/mailman confirm bar"',
+         'bar-join:         "|/foo/bar/mail/mailman join bar"',
+         'bar-leave:        "|/foo/bar/mail/mailman leave bar"',
+         'bar-owner:        "|/foo/bar/mail/mailman owner bar"',
+         'bar-request:      "|/foo/bar/mail/mailman request bar"',
+         'bar-subscribe:    "|/foo/bar/mail/mailman subscribe bar"',
+         'bar-unsubscribe:  "|/foo/bar/mail/mailman unsubscribe bar"']
       }
       let(:new_list_return) {
         prefix =<<EOF
@@ -63,38 +71,45 @@ To finish creating your mailing list, you must edit your /etc/aliases (or
 equivalent) file by adding the following lines, and possibly running the                            
 `newaliases' program:                                                                               
                                                                                                     
-## foo mailing list                                                                                 
+## bar mailing list                                                                                 
 EOF
         prefix+new_aliases.join("\n")
       }
-      let(:fake_aliases_file) { mock(File) }
-
-      before :each do
-        File.stub(:open).with('/etc/aliases', 'a').and_return(fake_aliases_file)
-        subject.stub(:run_newaliases_command)
-      end
 
       it "should create the list" do
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return([new_list_return, process])
         subject.should_receive(:run_command).
           with("#{fake_root}/bin/list_lists 2>&1", nil).
-          and_return([list_result, process])
-        subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
+          and_return([list_result, process], [list_result_after_create, process])
+        subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
       end
 
       it "should not rely on the aliases setup output" do
         # https://www.pivotaltracker.com/story/show/9422507
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return(["", process])
         subject.should_receive(:run_command).
           with("#{fake_root}/bin/list_lists 2>&1", nil).
-          and_return([list_result, process])
-        subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
+          and_return([list_result, process], [list_result_after_create, process])
+        subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
+      end
+
+      it "should raise an exception if the list already exists" do
+        # https://www.pivotaltracker.com/story/show/9421449
+        subject.should_not_receive(:run_command).
+          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil)
+        subject.should_receive(:run_command).
+          with("#{fake_root}/bin/list_lists 2>&1", nil).
+          and_return([list_result, process])
+        lambda {
+          subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
+                              :admin_password => 'qux')
+        }.should raise_error(MailManager::ListNameConflictError)
       end
     end
   end

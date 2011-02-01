@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mailmanager (1.0.14)
+    mailmanager (1.0.15)
       json (~> 1.4.6)
       open4 (~> 1.0.1)
 
@@ -14,7 +14,15 @@ GEM
     ci_reporter (1.6.4)
       builder (>= 2.1.2)
     columnize (0.3.2)
+    cucumber (0.10.0)
+      builder (>= 2.1.2)
+      diff-lcs (~> 1.1.2)
+      gherkin (~> 2.3.2)
+      json (~> 1.4.6)
+      term-ansicolor (~> 1.0.5)
     diff-lcs (1.1.2)
+    gherkin (2.3.3)
+      json (~> 1.4.6)
     json (1.4.6)
     linecache19 (0.5.11)
       ruby_core_source (>= 0.1.4)
@@ -37,6 +45,7 @@ GEM
       ruby-debug-base19 (>= 0.11.19)
     ruby_core_source (0.1.4)
       archive-tar-minitar (>= 0.5.2)
+    term-ansicolor (1.0.5)
 
 PLATFORMS
   ruby
@@ -44,6 +53,7 @@ PLATFORMS
 DEPENDENCIES
   ZenTest (~> 4.4.2)
   ci_reporter
+  cucumber
   mailmanager!
   rspec (~> 2.4.0)
   ruby-debug19

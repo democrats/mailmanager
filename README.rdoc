@@ -83,6 +83,25 @@ Exposing new list properties works something like this:
 That should get you started hacking on the gem. If you get stuck or are trying to
 do anything more complex, please feel free to e-mail me: cap10morgan@gmail.com.
 
+== Testing
+
+The RSpec suite should run out of the box with the 'rake spec' command.
+Feel free to open a GitHub issue if they do not.
+
+You'll need a local working installation of GNU Mailman 2.1.14 (or a later version
+of 2.1.x, probably) to run the Cucumber integration tests. Make a symlink to the
+root directory of your Mailman install in the mailmanager directory. It should be
+named "mailman". So if you are in the top-level mailmanager directory and your
+Mailman installation is in /usr/local/mailman, you would run this command:
+    ln -s /usr/local/mailman mailman
+
+Once that's done, you should be able to just run 'cucumber' in the top-level
+mailmanager directory.
+
+_MAKE SURE THIS IS NOT A MAILMAN INSTALLATION YOU CARE ABOUT!_ The Cucumber test
+suite will start by deleting all mailing lists so it can have a clean slate to
+test with.
+
 == Contributing
 
 - Fork on GitHub

@@ -16,7 +16,7 @@ if ENV['RUBY_ENV'] == 'test' || ENV['RUBY_ENV'] == 'cucumber'
       mkdir_p report_path
     end
 
-    task :spec => ["hudson:setup:rspec", 'rake:spec']
+    task :spec => ["hudson:setup:rspec", 'simplecov:start', 'rake:spec']
 
     namespace :setup do
       task :pre_ci do

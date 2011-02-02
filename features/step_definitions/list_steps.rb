@@ -20,3 +20,20 @@ Then /^I should get a URL$/ do
   @attr.should =~ %r{^http://.*/}
 end
 
+Then /^I should get an email address$/ do
+  # super basic email regex
+  @attr.should =~ %r{^[^@]+@[^\.]+\..+}
+end
+
+When /^I add a moderator "([^"]*)"$/ do |mod|
+  @list.add_moderator(mod)
+end
+
+Then /^I should have (\d+) moderators?$/ do |num|
+  @list.should have(num.to_i).moderators
+end
+
+When /^I delete a moderator "([^"]*)"$/ do |mod|
+  @list.delete_moderator(mod)
+end
+

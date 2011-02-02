@@ -189,10 +189,11 @@ EOF
         test_lib_method(:add_moderator, 'moderator.append', nil, 'foo@bar.com')
       end
 
-      it "should return 'already_a_moderator' if they already a moderator" do
-        result = {'result' => 'already_a_moderator'}
+      it "should raise ModeratorAlreadyExistsError if they already a moderator" do
         subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['foo@bar.com']})
-        subject.add_moderator(list, 'foo@bar.com').should == result
+        lambda {
+          subject.add_moderator(list, 'foo@bar.com')
+        }.should raise_error(MailManager::ModeratorAlreadyExistsError)
       end
     end
 
@@ -202,10 +203,11 @@ EOF
         test_lib_method(:delete_moderator, 'moderator.remove', nil, 'foo@bar.com')
       end
 
-      it "should return 'not_a_moderator' if they are not already a moderator" do
-        result = {'result' => 'not_a_moderator'}
+      it "should raise ModeratorNotFoundError if they are not already a moderator" do
         subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['other@bar.com']})
-        subject.delete_moderator(list, 'foo@bar.com').should == result
+        lambda {
+          subject.delete_moderator(list, 'foo@bar.com')
+        }.should raise_error(MailManager::ModeratorNotFoundError)
       end
     end
 

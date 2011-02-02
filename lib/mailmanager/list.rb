@@ -100,8 +100,8 @@ module MailManager
       result['result'].to_sym
     end
 
-    # Deletes a moderator from the list. Returns :not_a_moderator if the
-    # requested deletion isn't a moderator.
+    # Deletes a moderator from the list. Raises a ModeratorNotFoundError
+    # if the requested deletion isn't a moderator.
     def delete_moderator(email)
       result = lib.delete_moderator(self, email)
       result['result'].to_sym

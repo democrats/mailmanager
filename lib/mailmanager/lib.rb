@@ -9,6 +9,12 @@ module MailManager
   class ListNameConflictError < StandardError #:nodoc:
   end
 
+  class ModeratorNotFoundError < StandardError #:nodoc:
+  end
+
+  class ModeratorAlreadyExistsError < StandardError #:nodoc:
+  end
+
   class Lib #:nodoc:all
 
     def mailmanager
@@ -106,7 +112,7 @@ module MailManager
 
     def add_moderator(list, email)
       if moderators(list)['return'].include?(email)
-        return {'result' => 'already_a_moderator'}
+        raise ModeratorAlreadyExistsError, "#{email} is already a moderator of #{list.name}"
       end
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => 'moderator.append',
@@ -116,7 +122,7 @@ module MailManager
 
     def delete_moderator(list, email)
       unless moderators(list)['return'].include?(email)
-        return {'result' => 'not_a_moderator'}
+        raise ModeratorNotFoundError, "#{email} is not a moderator of #{list.name}"
       end
       cmd = :withlist
       out = command(cmd, :name => list.name, :wlcmd => 'moderator.remove',

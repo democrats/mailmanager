@@ -37,3 +37,11 @@ When /^I delete a moderator "([^"]*)"$/ do |mod|
   @list.delete_moderator(mod)
 end
 
+Given /^I set its (.+?) to "([^"]*)"$/ do |attr,val|
+  @list.send("#{attr}=",val)
+end
+
+Then /^I should get "([^"]*)"$/ do |val|
+  @attr.should == val
+end
+

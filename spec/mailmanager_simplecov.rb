@@ -17,7 +17,5 @@ SimpleCov.adapters.define 'mailmanager' do
   add_filter '/pkg/'
   add_filter '/tasks/'
   add_filter '/results/'
-
-  add_group 'Gem', 'lib/'
 end
 SimpleCov.formatter = SimpleCov::Formatter::MergedFormatter

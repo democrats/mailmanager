@@ -7,7 +7,7 @@ if ENV['RUBY_ENV'] == 'test' || ENV['RUBY_ENV'] == 'cucumber'
       "results/features"
     end
 
-    Cucumber::Rake::Task.new({'cucumber' => [:report_setup]}) do |t|
+    Cucumber::Rake::Task.new({'cucumber' => [:report_setup, 'simplecov:start']}) do |t|
       t.cucumber_opts = %{--profile default --no-color --format junit --out #{report_path}}
     end
 

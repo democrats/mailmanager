@@ -243,15 +243,6 @@ module MailManager
 
     def parse_output(mailman_cmd, output)
       case mailman_cmd
-      when :newlist
-        list_name = nil
-        output.split("\n").each do |line|
-          if match = /^##\s+(.+?)mailing\s+list\s*$/.match(line)
-            list_name = match[1]
-          end
-        end
-        raise MailmanExecuteError, "Error getting name of newly created list. Mailman sent:\n#{output}" if list_name.nil?
-        return_obj = MailManager::List.new(list_name)
       when :rmlist
         return_obj = output =~ /Removing list info/
       when :list_lists

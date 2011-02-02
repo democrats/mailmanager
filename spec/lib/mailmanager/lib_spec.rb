@@ -80,9 +80,7 @@ EOF
         subject.should_receive(:run_command).
           with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return([new_list_return, process])
-        subject.should_receive(:run_command).
-          with("#{fake_root}/bin/list_lists 2>&1", nil).
-          and_return([list_result, process], [list_result_after_create, process])
+        subject.stub(:list_names).and_return([],['bar'])
         subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
       end
@@ -92,9 +90,7 @@ EOF
         subject.should_receive(:run_command).
           with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return(["", process])
-        subject.should_receive(:run_command).
-          with("#{fake_root}/bin/list_lists 2>&1", nil).
-          and_return([list_result, process], [list_result_after_create, process])
+        subject.stub(:list_names).and_return([],['bar'])
         subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
                             :admin_password => 'qux')
       end
@@ -103,9 +99,7 @@ EOF
         # https://www.pivotaltracker.com/story/show/9421449
         subject.should_not_receive(:run_command).
           with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil)
-        subject.should_receive(:run_command).
-          with("#{fake_root}/bin/list_lists 2>&1", nil).
-          and_return([list_result, process])
+        subject.stub(:list_names).and_return(['foo'])
         lambda {
           subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
                               :admin_password => 'qux')
@@ -119,7 +113,15 @@ EOF
       subject.should_receive(:run_command).
         with("#{fake_root}/bin/rmlist \"foo\" 2>&1", nil).
         and_return(["Removing list info", process])
+      subject.stub(:list_names).and_return(['foo'])
       subject.delete_list('foo')
+    end
+
+    it "should raise an exception if the list doesn't exist" do
+      subject.stub(:list_names).and_return([])
+      lambda {
+        subject.delete_list('foo')
+      }.should raise_error(MailManager::ListNotFoundError)
     end
   end
 

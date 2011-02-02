@@ -47,6 +47,7 @@ module MailManager
 
     def delete_list(params)
       params = {:name => params} unless params.respond_to?(:has_key?)
+      raise ListNotFoundError, "#{params[:name]} does not exist" unless list_names.include?(params[:name])
       cmd = :rmlist
       out = command(cmd, params)
       parse_output(cmd, out)

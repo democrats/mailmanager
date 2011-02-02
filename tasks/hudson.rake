@@ -7,7 +7,7 @@ if ENV['RUBY_ENV'] == 'test' || ENV['RUBY_ENV'] == 'cucumber'
       "results/features"
     end
 
-    Cucumber::Rake::Task.new({'cucumber' => [:report_setup, 'simplecov:start']}) do |t|
+    Cucumber::Rake::Task.new({'cucumber' => [:report_setup, 'setup:coverage']}) do |t|
       t.cucumber_opts = %{--profile default --no-color --format junit --out #{report_path}}
     end
 
@@ -16,15 +16,18 @@ if ENV['RUBY_ENV'] == 'test' || ENV['RUBY_ENV'] == 'cucumber'
       mkdir_p report_path
     end
 
-    task :spec => ["hudson:setup:rspec", 'simplecov:start', 'rake:spec']
+    task :spec => ["hudson:setup:rspec", 'rake:spec']
 
     namespace :setup do
+      task :coverage do
+        ENV["COVERAGE_REPORT"] = "true"
+      end
       task :pre_ci do
         ENV["CI_REPORTS"] = 'results/rspec/'
         gem 'ci_reporter'
         require 'ci/reporter/rake/rspec'
       end
-      task :rspec => [:pre_ci, "ci:setup:rspec"]
+      task :rspec => [:pre_ci, :coverage, "ci:setup:rspec"]
     end
   end
 end

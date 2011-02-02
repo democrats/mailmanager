@@ -8,6 +8,7 @@ When /^I create a new list "([^"]*)"$/ do |list_name|
 end
 
 When /^I delete list "([^"]*)"$/ do |list_name|
-  @mailmanager.delete_list(list_name)
+  list = @mailmanager.get_list(list_name)
+  list.delete
 end
 

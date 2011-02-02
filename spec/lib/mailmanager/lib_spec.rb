@@ -105,6 +105,17 @@ EOF
                               :admin_password => 'qux')
         }.should raise_error(MailManager::ListNameConflictError)
       end
+
+      it "should raise a MailmanExecuteError if the list creation fails on the Mailman side" do
+        subject.should_receive(:run_command).
+          with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          and_return(["", process])
+        subject.stub(:get_list).and_raise(MailManager::ListNotFoundError)
+        lambda {
+          subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
+                              :admin_password => 'qux')
+        }.should raise_error(MailManager::MailmanExecuteError)
+      end
     end
   end
 

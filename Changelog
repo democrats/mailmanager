@@ -1,4 +1,7 @@
-Current version is 1.0.16
+Current version is 1.0.17
+
+changes since 1.0.16
+- removed rubygems-test since it doesn't work yet (says it can't find bundler)
 
 changes since 1.0.15
 - added rubygems-test support -- https://github.com/rubygems/rubygems-test/blob/master/README.txt

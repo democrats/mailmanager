@@ -1,4 +1,9 @@
-Current version is 1.0.15
+Current version is 1.0.16
+
+changes since 1.0.15
+- added rubygems-test support -- https://github.com/rubygems/rubygems-test/blob/master/README.txt
+- added a boatload of tests
+- removed some old unused code
 
 changes since 1.0.14
 - added a Cucumber integration test suite

@@ -40,3 +40,6 @@ desc "Run all specs"
 RSpec::Core::RakeTask.new(:spec) do |spec|
   spec.pattern = 'spec/**/*_spec.rb'
 end
+
+desc "Run tests for rubygems-test"
+task :test => :spec

@@ -29,3 +29,9 @@ Feature: List metadata
     And I set its subject_prefix to "[Foo List] "
     When I ask for its subject_prefix
     Then I should get "[Foo List] "
+
+  Scenario: Getting & setting the host name
+    Given I have a list named "foo"
+    And I set its host_name to "groups.foo.org"
+    When I ask for its host_name
+    Then I should get "groups.foo.org"

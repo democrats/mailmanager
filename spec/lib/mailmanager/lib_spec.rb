@@ -245,6 +245,18 @@ EOF
         test_attr_getter(:subject_prefix, "[Foo] ")
       end
     end
+
+    describe "#host_name" do
+      it "should ask Mailman for the list's host name" do
+        test_attr_getter(:host_name, "groups.foo.org")
+      end
+    end
+
+    describe "#set_host_name" do
+      it "should tell Mailman to set the list's host name" do
+        test_attr_setter(:host_name, 'groups.foo.org')
+      end
+    end
   end
 
   def test_method_getter(lib_method, return_value, *args)

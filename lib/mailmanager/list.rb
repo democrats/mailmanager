@@ -158,6 +158,18 @@ EOF
       result['result'].to_sym
     end
 
+    # Returns the list's host name
+    def host_name
+      result = lib.host_name(self)
+      result['return']
+    end
+
+    # Sets the list's host name
+    def host_name=(host_name)
+      result = lib.set_host_name(self, host_name)
+      result['result'].to_sym
+    end
+
     private
 
     def add_member_using(method, email, name)

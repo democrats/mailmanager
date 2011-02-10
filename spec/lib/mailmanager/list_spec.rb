@@ -113,4 +113,24 @@ describe MailManager::List do
       subject.approved_delete_member('foo@bar.baz').should == :success
     end
   end
+
+  context "host_name accessors" do
+    let(:host_name) { 'groups.foo.org' }
+
+    describe "#host_name=" do
+      it "should tell lib to set the host_name" do
+        lib.should_receive(:set_host_name).with(subject, host_name).
+          and_return({'result' => 'success'})
+        subject.host_name = host_name
+      end
+    end
+
+    describe "#host_name" do
+      it "should ask lib for the host_name" do
+        lib.should_receive(:host_name).with(subject).
+          and_return({'result' => 'success', 'return' => host_name})
+        subject.host_name.should == host_name
+      end
+    end
+  end
 end

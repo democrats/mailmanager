@@ -136,6 +136,14 @@ module MailManager
       withlist_command(:subject_prefix, list, sp)
     end
 
+    def host_name(list)
+      withlist_command(:host_name, list)
+    end
+
+    def set_host_name(list, host_name)
+      withlist_command(:host_name, list, host_name)
+    end
+
     private
 
     def withlist_command(wlcmd, list, *args)

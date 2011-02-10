@@ -47,10 +47,10 @@ def unwindattrs(obj, attrname, *args):
         return unwindattrs(nextobj, nextattrname, *args)
 
 needs_userdesc = dict(AddMember=True, ApprovedAddMember=True)
-needs_save = dict(AddMember=True, ApprovedAddMember=True,
-                  DeleteMember=True, ApprovedDeleteMember=True,
-                  moderator_append=True, moderator_remove=True)
-needs_save_with_arg = dict(description=True, subject_prefix=True)
+needs_save = dict(AddMember=True, ApprovedAddMember=True, DeleteMember=True,
+		              ApprovedDeleteMember=True, moderator_append=True,
+									moderator_remove=True)
+needs_save_with_arg = dict(description=True, subject_prefix=True, host_name=True)
 
 def command(mlist, cmd, *args):
     result = {}

@@ -150,54 +150,54 @@ EOF
 
     describe "#regular_members" do
       it "should ask Mailman for the regular list members" do
-        test_lib_method(:regular_members, :getRegularMemberKeys, regular_members)
+        test_mailman_cmd(:regular_members, :getRegularMemberKeys, regular_members)
       end
     end
 
     describe "#digest_members" do
       it "should ask Mailman for the digest list members" do
-        test_lib_method(:digest_members, :getDigestMemberKeys, digest_members)
+        test_mailman_cmd(:digest_members, :getDigestMemberKeys, digest_members)
       end
     end
 
     describe "#add_member" do
       it "should ask Mailman to add the member to the list" do
         new_member = 'newb@dnc.org'
-        test_lib_setter(:add_member, new_member)
+        test_method_setter(:add_member, new_member)
       end
     end
 
     describe "#approved_add_member" do
       it "should ask Mailman to add the member to the list" do
         new_member = 'newb@dnc.org'
-        test_lib_setter(:approved_add_member, new_member)
+        test_method_setter(:approved_add_member, new_member)
       end
     end
 
     describe "#delete_member" do
       it "should ask Mailman to delete the member from the list" do
         former_member = 'oldie@ofa.org'
-        test_lib_setter(:delete_member, former_member)
+        test_method_setter(:delete_member, former_member)
       end
     end
 
     describe "#approved_delete_member" do
       it "should ask Mailman to delete the member from the list" do
         former_member = 'oldie@ofa.org'
-        test_lib_setter(:approved_delete_member, former_member)
+        test_method_setter(:approved_delete_member, former_member)
       end
     end
 
     describe "#moderators" do
       it "should ask Mailman for the list's moderators" do
-        test_lib_method(:moderators, :moderator, ['phb@bigcorp.com', 'nhb@smallstartup.com'])
+        test_mailman_cmd(:moderators, :moderator, ['phb@bigcorp.com', 'nhb@smallstartup.com'])
       end
     end
 
     describe "#add_moderator" do
       it "should ask Mailman to add the moderator to the list" do
         subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => []})
-        test_lib_method(:add_moderator, 'moderator.append', nil, 'foo@bar.com')
+        test_mailman_cmd(:add_moderator, 'moderator.append', nil, 'foo@bar.com')
       end
 
       it "should raise ModeratorAlreadyExistsError if they already a moderator" do
@@ -211,7 +211,7 @@ EOF
     describe "#delete_moderator" do
       it "should ask Mailman to delete the moderator from the list" do
         subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['foo@bar.com']})
-        test_lib_method(:delete_moderator, 'moderator.remove', nil, 'foo@bar.com')
+        test_mailman_cmd(:delete_moderator, 'moderator.remove', nil, 'foo@bar.com')
       end
 
       it "should raise ModeratorNotFoundError if they are not already a moderator" do
@@ -224,44 +224,48 @@ EOF
 
     describe "#web_page_url" do
       it "should ask Mailman for the list's web address" do
-        test_lib_attr(:web_page_url, "http://bar.com/mailman/listinfo/foo")
+        test_attr_getter(:web_page_url, "http://bar.com/mailman/listinfo/foo")
       end
     end
 
     describe "#request_email" do
       it "should ask Mailman for the request email address" do
-        test_lib_getter(:request_email, "foo-request@bar.com")
+        test_method_getter(:request_email, "foo-request@bar.com")
       end
     end
 
     describe "#description" do
       it "should ask Mailman for the list's description" do
-        test_lib_attr(:description, "this is a mailing list")
+        test_attr_getter(:description, "this is a mailing list")
       end
     end
 
     describe "#subject_prefix" do
       it "should ask Mailman for the list's subject prefix" do
-        test_lib_attr(:subject_prefix, "[Foo] ")
+        test_attr_getter(:subject_prefix, "[Foo] ")
       end
     end
   end
 
-  def test_lib_getter(lib_method, return_value, *args)
+  def test_method_getter(lib_method, return_value, *args)
     cc_mailman_method = camel_case("get_#{lib_method.to_s}")
-    test_lib_method(lib_method, cc_mailman_method, return_value, *args)
+    test_mailman_cmd(lib_method, cc_mailman_method, return_value, *args)
   end
 
-  def test_lib_setter(lib_method, *args)
+  def test_method_setter(lib_method, *args)
     cc_mailman_method = camel_case(lib_method.to_s)
-    test_lib_method(lib_method, cc_mailman_method, nil, *args)
+    test_mailman_cmd(lib_method, cc_mailman_method, nil, *args)
   end
 
-  def test_lib_attr(lib_attr, return_value)
-    test_lib_method(lib_attr, lib_attr, return_value)
+  def test_attr_getter(attr, return_value)
+    test_mailman_cmd(attr, attr, return_value)
   end
 
-  def test_lib_method(lib_method, mailman_method, return_value=nil, *args)
+  def test_attr_setter(attr, *args)
+    test_mailman_cmd("set_#{attr}", attr, nil, *args)
+  end
+
+  def test_mailman_cmd(lib_method, mailman_method, return_value=nil, *args)
     if return_value.is_a?(Hash)
       result = return_value
     else

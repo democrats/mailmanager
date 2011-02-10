@@ -6,7 +6,7 @@ for details.
 It is licensed under the New BSD License (see the LICENSE file for details).
 
 MailManager has been tested with Mailman 2.1.14. It has NOT been tested with any
-release of Mailman 3 (in alpha as of 1/19/2011). It requires Python 2.6 or higher.
+release of Mailman 3 (in alpha as of 1/19/2011). It requires Python 2.4 or higher.
 Note that while Mailman itself requires Python, it can work with older versions. So
 check your Python version before using this.
 

@@ -1,4 +1,9 @@
-Current version is 1.0.17
+Current version is 1.0.18
+
+changes since 1.0.17
+- added host_name getter/setter for lists
+- cleaned & DRY'd up the lib class a bit
+- cleaned up the lib spec helper method names
 
 changes since 1.0.16
 - removed rubygems-test since it doesn't work yet (says it can't find bundler)

@@ -59,77 +59,6 @@ module MailManager
       parse_output(cmd, out)
     end
 
-    def list_address(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :getListAddress)
-      parse_json_output(out)
-    end
-
-    def regular_members(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :getRegularMemberKeys)
-      parse_json_output(out)
-    end
-
-    def digest_members(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :getDigestMemberKeys)
-      parse_json_output(out)
-    end
-
-    def add_member(list, member)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :AddMember, :arg => member)
-      parse_json_output(out)
-    end
-
-    def approved_add_member(list, member)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :ApprovedAddMember,
-                    :arg => member)
-      parse_json_output(out)
-    end
-
-    def delete_member(list, email)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :DeleteMember,
-                    :arg => email)
-      parse_json_output(out)
-    end
-
-    def approved_delete_member(list, email)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :ApprovedDeleteMember,
-                    :arg => email)
-      parse_json_output(out)
-    end
-
-    def moderators(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :moderator)
-      parse_json_output(out)
-    end
-
-    def add_moderator(list, email)
-      if moderators(list)['return'].include?(email)
-        raise ModeratorAlreadyExistsError, "#{email} is already a moderator of #{list.name}"
-      end
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => 'moderator.append',
-                    :arg => email)
-      parse_json_output(out)
-    end
-
-    def delete_moderator(list, email)
-      unless moderators(list)['return'].include?(email)
-        raise ModeratorNotFoundError, "#{email} is not a moderator of #{list.name}"
-      end
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => 'moderator.remove',
-                    :arg => email)
-      parse_json_output(out)
-    end
-
     def inject(list, message, queue=nil)
       cmd = :inject
       params = {:listname => list.name, :stdin => message}
@@ -137,75 +66,116 @@ module MailManager
       command(cmd, params)
     end
 
-    # TODO: DRY this up!
+    def list_address(list)
+      withlist_command(:getListAddress, list)
+    end
+
+    def regular_members(list)
+      withlist_command(:getRegularMemberKeys, list)
+    end
+
+    def digest_members(list)
+      withlist_command(:getDigestMemberKeys, list)
+    end
+
+    def add_member(list, member)
+      withlist_command(:AddMember, list, member)
+    end
+
+    def approved_add_member(list, member)
+      withlist_command(:ApprovedAddMember, list, member)
+    end
+
+    def delete_member(list, email)
+      withlist_command(:DeleteMember, list, email)
+    end
+
+    def approved_delete_member(list, email)
+      withlist_command(:ApprovedDeleteMember, list, email)
+    end
+
+    def moderators(list)
+      withlist_command(:moderator, list)
+    end
+
+    def add_moderator(list, email)
+      if moderators(list)['return'].include?(email)
+        raise ModeratorAlreadyExistsError, "#{email} is already a moderator of #{list.name}"
+      end
+      withlist_command('moderator.append', list, email)
+    end
+
+    def delete_moderator(list, email)
+      unless moderators(list)['return'].include?(email)
+        raise ModeratorNotFoundError, "#{email} is not a moderator of #{list.name}"
+      end
+      withlist_command('moderator.remove', list, email)
+    end
 
     def web_page_url(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => 'web_page_url')
-      parse_json_output(out)
+      withlist_command('web_page_url', list)
     end
 
     def request_email(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :GetRequestEmail)
-      parse_json_output(out)
+      withlist_command(:GetRequestEmail, list)
     end
 
     def description(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :description)
-      parse_json_output(out)
-    end
-
-    def subject_prefix(list)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :subject_prefix)
-      parse_json_output(out)
+      withlist_command(:description, list)
     end
 
     def set_description(list, desc)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :description, :arg => desc)
-      parse_json_output(out)
+      withlist_command(:description, list, desc)
+    end
+
+    def subject_prefix(list)
+      withlist_command(:subject_prefix, list)
     end
 
     def set_subject_prefix(list, sp)
-      cmd = :withlist
-      out = command(cmd, :name => list.name, :wlcmd => :subject_prefix, :arg => sp)
+      withlist_command(:subject_prefix, list, sp)
+    end
+
+    private
+
+    def withlist_command(wlcmd, list, *args)
+      params = {:name => list.name, :wlcmd => wlcmd}
+      params[:arg] = args[0] unless args[0].nil?
+      out = command(:withlist, params)
       parse_json_output(out)
     end
 
-    def command(cmd, opts = {})
+    def command(cmd, params = {})
       mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} "
-      # delete opts as we handle them explicitly
+      # delete params as we handle them explicitly
       stdin = nil
-      stdin = opts.delete(:stdin) if opts.respond_to?(:has_key?) && opts.has_key?(:stdin)
+      stdin = params.delete(:stdin) if params.respond_to?(:has_key?) && params.has_key?(:stdin)
       case cmd
       when :newlist
         mailman_cmd += "-q "
-        raise ArgumentError, "Missing :name param" if opts[:name].nil?
-        raise ArgumentError, "Missing :admin_email param" if opts[:admin_email].nil?
-        raise ArgumentError, "Missing :admin_password param" if opts[:admin_password].nil?
+        raise ArgumentError, "Missing :name param" if params[:name].nil?
+        raise ArgumentError, "Missing :admin_email param" if params[:admin_email].nil?
+        raise ArgumentError, "Missing :admin_password param" if params[:admin_password].nil?
         mailman_cmd_suffix = [:name, :admin_email, :admin_password].map { |key|
-          escape(opts.delete(key))
+          escape(params.delete(key))
         }.join(' ')
         mailman_cmd += "#{mailman_cmd_suffix} "
       when :rmlist
-        raise ArgumentError, "Missing :name param" if opts[:name].nil?
-        mailman_cmd += "#{escape(opts.delete(:name))} "
+        raise ArgumentError, "Missing :name param" if params[:name].nil?
+        mailman_cmd += "#{escape(params.delete(:name))} "
       when :withlist
-        raise ArgumentError, "Missing :name param" if opts[:name].nil?
+        raise ArgumentError, "Missing :name param" if params[:name].nil?
         proxy_path = File.dirname(__FILE__)
         mailman_cmd = "PYTHONPATH=#{proxy_path} #{MailManager.python} #{mailman_cmd}"
-        mailman_cmd += "-q -r listproxy.command #{escape(opts.delete(:name))} " +
-                       "#{opts.delete(:wlcmd)} "
-        if !opts[:arg].nil? && opts[:arg].length > 0
-          mailman_cmd += "#{escape(opts.delete(:arg))} "
+        mailman_cmd += "-q -r listproxy.command #{escape(params.delete(:name))} " +
+                       "#{params.delete(:wlcmd)} "
+        if !params[:arg].nil? && params[:arg].length > 0
+          mailman_cmd += "#{escape(params.delete(:arg))} "
         end
       end
 
-      # assume any leftover opts are POSIX-style args
-      mailman_cmd += opts.keys.map { |k| "--#{k}=#{escape(opts[k])}" }.join(' ')
+      # assume any leftover params are POSIX-style args
+      mailman_cmd += params.keys.map { |k| "--#{k}=#{escape(params[k])}" }.join(' ')
       mailman_cmd += ' ' if mailman_cmd[-1,1] != ' '
       mailman_cmd += "2>&1"
       if MailManager.debug

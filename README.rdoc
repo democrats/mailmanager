@@ -21,7 +21,7 @@ check your Python version before using this.
   foo_list = mm.get_list('foo')
   new_list = mm.create_list(:name => 'newlist', :admin_email => 'me@here.com', :admin_password => 'secret')
   new_list.add_member('bar@baz.com')
-  new_list.members (returns ['foo@baz.com'])
+  new_list.members -> ['bar@baz.com']
 
 == Hacking
 

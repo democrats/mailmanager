@@ -64,6 +64,7 @@ module MailManager
       params = {:listname => list.name, :stdin => message}
       params[:queue] = queue unless queue.nil?
       command(cmd, params)
+      {'result' => 'success'}
     end
 
     def list_address(list)
@@ -154,7 +155,7 @@ module MailManager
     end
 
     def command(cmd, params = {})
-      mailman_cmd = "#{mailmanager.root}/bin/#{cmd.to_s} "
+      mailman_cmd = "#{MailManager.python} #{mailmanager.root}/bin/#{cmd.to_s} "
       # delete params as we handle them explicitly
       stdin = nil
       stdin = params.delete(:stdin) if params.respond_to?(:has_key?) && params.has_key?(:stdin)
@@ -174,7 +175,7 @@ module MailManager
       when :withlist
         raise ArgumentError, "Missing :name param" if params[:name].nil?
         proxy_path = File.dirname(__FILE__)
-        mailman_cmd = "PYTHONPATH=#{proxy_path} #{MailManager.python} #{mailman_cmd}"
+        mailman_cmd = "PYTHONPATH=#{proxy_path} #{mailman_cmd}"
         mailman_cmd += "-q -r listproxy.command #{escape(params.delete(:name))} " +
                        "#{params.delete(:wlcmd)} "
         if !params[:arg].nil? && params[:arg].length > 0

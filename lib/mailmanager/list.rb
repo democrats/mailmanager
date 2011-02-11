@@ -108,15 +108,31 @@ module MailManager
     end
 
     # Injects a message into the list.
-    def inject(from, subject, message)
+    def inject(from, subj, message, custom_headers=nil)
       inject_message =<<EOF
 From: #{from}
 To: #{address}
-Subject: #{subject}
-
-#{message}
+Subject: #{subj}
 EOF
-      lib.inject(self, inject_message)
+      if !custom_headers.nil?
+        raise ArgumentError, "custom headers arg should be a hash" unless custom_headers.respond_to?(:each_pair)
+        headers = []
+        custom_headers.each_pair { |hdr, val|
+          headers << "#{hdr}: #{val}"
+        }
+        inject_message += headers.join("\n")
+      end
+      inject_message += "\n#{message}"
+      result = lib.inject(self, inject_message)
+      result['result'].to_sym
+    end
+
+    # Injects a raw message into the list. You must send a properly formatted
+    # email to this method. You probably want to set the To: header to the list's
+    # address. You can get that from MailManager::List#address
+    def inject_raw(message)
+      result = lib.inject(self, message)
+      result['result'].to_sym
     end
 
     # Returns the info URL for the list

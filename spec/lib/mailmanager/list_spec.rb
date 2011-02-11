@@ -114,6 +114,52 @@ describe MailManager::List do
     end
   end
 
+  context "when injecting a message" do
+    let(:from)             { 'Foo Bar <foo@bar.name>' }
+    let(:to)               { 'list@foo.org' }
+    let(:subj)             { 'Test Subject' }
+    let(:message)          { 'Test Message' }
+    let(:headers)          { {'X-Custom-1' => 'foo', 'X-Custom-2' => 'bar'} }
+    let(:raw_message_pre)  { <<EOF
+From: #{from}
+To: #{to}
+Subject: #{subj}
+EOF
+    }
+    let(:raw_message)      { raw_message_pre + "\n#{message}" }
+    let(:msg_with_headers) {
+      headers_arr = []
+      headers.each_pair { |hdr, val|
+        headers_arr << "#{hdr}: #{val}"
+      }
+      raw_message_pre + headers_arr.join("\n") + "\n#{message}"
+    }
+
+    describe "#inject" do
+      it "should tell lib to inject a message into the list" do
+        lib.stub(:list_address).with(subject).and_return({'result' => 'success', 'return' => to})
+        lib.should_receive(:inject).with(subject, raw_message).
+          and_return({'result' => 'success'})
+        subject.inject(from, subj, message)
+      end
+
+      it "should accept custom headers" do
+        lib.stub(:list_address).with(subject).and_return({'result' => 'success', 'return' => to})
+        lib.should_receive(:inject).with(subject, msg_with_headers).
+          and_return({'result' => 'success'})
+        subject.inject(from, subj, message, headers)
+      end
+    end
+
+    describe "#inject_raw" do
+      it "should tell lib to inject whatever you send it" do
+        lib.should_receive(:inject).with(subject, raw_message).
+          and_return({'result' => 'success'})
+        subject.inject_raw(raw_message)
+      end
+    end
+  end
+
   context "host_name accessors" do
     let(:host_name) { 'groups.foo.org' }
 

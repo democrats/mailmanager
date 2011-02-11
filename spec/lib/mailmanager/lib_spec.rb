@@ -4,6 +4,7 @@ describe MailManager::Lib do
   let(:mailmanager) { mock(MailManager) }
   let(:subject)     { MailManager::Lib.new }
   let(:fake_root)   { '/foo/bar' }
+  let(:python)      { '/usr/bin/env python' }
   let(:process)     { mock(Process::Status) }
   let(:list_result) { <<EOF
 3 matching mailing lists found:
@@ -22,7 +23,7 @@ EOF
 
   describe "#lists" do
     it "should return all existing lists" do
-      subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1", nil).
+      subject.stub(:run_command).with("#{python} #{fake_root}/bin/list_lists 2>&1", nil).
         and_return([list_result, process])
       subject.lists.should have(3).lists
     end
@@ -30,7 +31,7 @@ EOF
 
   describe "#create_list" do
     before :each do
-      subject.stub(:run_command).with("#{fake_root}/bin/list_lists 2>&1", nil).
+      subject.stub(:run_command).with("#{python} #{fake_root}/bin/list_lists 2>&1", nil).
         and_return([list_result, process])
     end
 
@@ -78,7 +79,7 @@ EOF
 
       it "should create the list" do
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          with("#{python} #{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return([new_list_return, process])
         subject.stub(:list_names).and_return([],['bar'])
         subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
@@ -88,7 +89,7 @@ EOF
       it "should not rely on the aliases setup output" do
         # https://www.pivotaltracker.com/story/show/9422507
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          with("#{python} #{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return(["", process])
         subject.stub(:list_names).and_return([],['bar'])
         subject.create_list(:name => 'bar', :admin_email => 'foo@bar.baz',
@@ -98,7 +99,7 @@ EOF
       it "should raise an exception if the list already exists" do
         # https://www.pivotaltracker.com/story/show/9421449
         subject.should_not_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil)
+          with("#{python} #{fake_root}/bin/newlist -q \"foo\" \"foo@bar.baz\" \"qux\" 2>&1", nil)
         subject.stub(:list_names).and_return(['foo'])
         lambda {
           subject.create_list(:name => 'foo', :admin_email => 'foo@bar.baz',
@@ -108,7 +109,7 @@ EOF
 
       it "should raise a MailmanExecuteError if the list creation fails on the Mailman side" do
         subject.should_receive(:run_command).
-          with("#{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
+          with("#{python} #{fake_root}/bin/newlist -q \"bar\" \"foo@bar.baz\" \"qux\" 2>&1", nil).
           and_return(["", process])
         subject.stub(:get_list).and_raise(MailManager::ListNotFoundError)
         lambda {
@@ -122,7 +123,7 @@ EOF
   describe "#delete_list" do
     it "should delete the list" do
       subject.should_receive(:run_command).
-        with("#{fake_root}/bin/rmlist \"foo\" 2>&1", nil).
+        with("#{python} #{fake_root}/bin/rmlist \"foo\" 2>&1", nil).
         and_return(["Removing list info", process])
       subject.stub(:list_names).and_return(['foo'])
       subject.delete_list('foo')
@@ -144,19 +145,52 @@ EOF
     let(:regular_members) { ['me@here.com', 'you@there.org'] }
     let(:digest_members)  { ['them@that.net'] }
 
-    let(:cmd) { "PYTHONPATH=#{File.expand_path('lib/mailmanager')} " +
-                "/usr/bin/env python " +
-                "#{fake_root}/bin/withlist -q -r listproxy.command \"foo\" " }
+    describe "#inject" do
+      it "should tell Mailman to inject a message into the list" do
+        test_message = <<EOF
+From: "Morgan, Wesley" <MorganW@dnc.org>
+To: "labs@mailman-dev.dnc.org" <labs@mailman-dev.dnc.org>
+Sender: "labs-bounces@mailman-dev.dnc.org" <labs-bounces@mailman-dev.dnc.org>
+Content-Class: urn:content-classes:message
+Date: Tue, 18 Jan 2011 13:26:59 -0500
+Subject: [Labs] is this thing on?
+Thread-Topic: is this thing on?
+Thread-Index: Acu3PUssIxkW+1TESgmnlPvaBgroVQ==
+Message-ID: <C3DA7B38-E1F9-4331-9025-D066DA7376F2@dnc.org>
+List-Help: <mailto:labs-request@mailman-dev.dnc.org?subject=help>
+List-Subscribe: <http://mailman-dev.dnc.org/mailman/listinfo/labs>,
+	<mailto:labs-request@mailman-dev.dnc.org?subject=subscribe>
+List-Unsubscribe: <http://mailman-dev.dnc.org/mailman/options/labs>,
+	<mailto:labs-request@mailman-dev.dnc.org?subject=unsubscribe>
+Accept-Language: en-US
+Content-Language: en-US
+X-Auto-Response-Suppress: All
+acceptlanguage: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Cello?
+_______________________________________________
+Labs mailing list
+Labs@mailman-dev.dnc.org
+http://mailman-dev.dnc.org/mailman/listinfo/labs
+
+EOF
+        test_message = "message!"
+        test_mailman_cmd(:inject, :inject, nil, nil, test_message)
+      end
+    end
 
     describe "#regular_members" do
       it "should ask Mailman for the regular list members" do
-        test_mailman_cmd(:regular_members, :getRegularMemberKeys, regular_members)
+        test_withlist_cmd(:regular_members, :getRegularMemberKeys, regular_members)
       end
     end
 
     describe "#digest_members" do
       it "should ask Mailman for the digest list members" do
-        test_mailman_cmd(:digest_members, :getDigestMemberKeys, digest_members)
+        test_withlist_cmd(:digest_members, :getDigestMemberKeys, digest_members)
       end
     end
 
@@ -190,14 +224,14 @@ EOF
 
     describe "#moderators" do
       it "should ask Mailman for the list's moderators" do
-        test_mailman_cmd(:moderators, :moderator, ['phb@bigcorp.com', 'nhb@smallstartup.com'])
+        test_withlist_cmd(:moderators, :moderator, ['phb@bigcorp.com', 'nhb@smallstartup.com'])
       end
     end
 
     describe "#add_moderator" do
       it "should ask Mailman to add the moderator to the list" do
         subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => []})
-        test_mailman_cmd(:add_moderator, 'moderator.append', nil, 'foo@bar.com')
+        test_withlist_cmd(:add_moderator, 'moderator.append', nil, 'foo@bar.com')
       end
 
       it "should raise ModeratorAlreadyExistsError if they already a moderator" do
@@ -211,7 +245,7 @@ EOF
     describe "#delete_moderator" do
       it "should ask Mailman to delete the moderator from the list" do
         subject.should_receive(:moderators).with(list).and_return({'result' => 'success', 'return' => ['foo@bar.com']})
-        test_mailman_cmd(:delete_moderator, 'moderator.remove', nil, 'foo@bar.com')
+        test_withlist_cmd(:delete_moderator, 'moderator.remove', nil, 'foo@bar.com')
       end
 
       it "should raise ModeratorNotFoundError if they are not already a moderator" do
@@ -261,32 +295,49 @@ EOF
 
   def test_method_getter(lib_method, return_value, *args)
     cc_mailman_method = camel_case("get_#{lib_method.to_s}")
-    test_mailman_cmd(lib_method, cc_mailman_method, return_value, *args)
+    test_withlist_cmd(lib_method, cc_mailman_method, return_value, *args)
   end
 
   def test_method_setter(lib_method, *args)
     cc_mailman_method = camel_case(lib_method.to_s)
-    test_mailman_cmd(lib_method, cc_mailman_method, nil, *args)
+    test_withlist_cmd(lib_method, cc_mailman_method, nil, *args)
   end
 
   def test_attr_getter(attr, return_value)
-    test_mailman_cmd(attr, attr, return_value)
+    test_withlist_cmd(attr, attr, return_value)
   end
 
   def test_attr_setter(attr, *args)
-    test_mailman_cmd("set_#{attr}", attr, nil, *args)
+    test_withlist_cmd("set_#{attr}", attr, nil, *args)
   end
 
-  def test_mailman_cmd(lib_method, mailman_method, return_value=nil, *args)
+  def test_withlist_cmd(lib_method, mailman_method, return_value=nil, *args)
+    test_mailman_cmd(lib_method, :withlist, mailman_method, return_value=nil, *args)
+  end
+
+  def test_mailman_cmd(lib_method, mailman_cmd, mailman_sub_cmd, return_value=nil, *args)
+    command =  "/usr/bin/env python " +
+               "#{fake_root}/bin/#{mailman_cmd.to_s} "
+    command += "--listname=" if mailman_cmd.to_sym == :inject
+    if mailman_cmd.to_sym == :withlist
+      command =  "PYTHONPATH=#{File.expand_path('lib/mailmanager')} #{command}"
+      command += "-q -r listproxy.command "
+    end
+    command += "\"foo\" "
     if return_value.is_a?(Hash)
       result = return_value
     else
       result = {"result" => "success"}
       result["return"] = return_value unless return_value.nil?
     end
+    cmd_arg = command
+    cmd_arg += "#{mailman_sub_cmd.to_s} " unless mailman_sub_cmd.nil?
+    cmd_arg += "#{cmd_args(*args)}" unless mailman_cmd.to_sym == :inject
+    cmd_arg += "2>&1"
+    stdin_arg = mailman_cmd.to_sym == :inject ? args[0] : nil
     subject.should_receive(:run_command).
-      with(cmd+"#{mailman_method.to_s} #{cmd_args(*args)}2>&1", nil).
-      and_return([JSON.generate(result),process])
+      with(cmd_arg, stdin_arg).and_return([JSON.generate(result),process])
+      # with(mailman_cmd+"#{mailman_method.to_s} #{cmd_args(*args)}2>&1", nil).
     subject.send(lib_method, list, *args).should == result
   end
 

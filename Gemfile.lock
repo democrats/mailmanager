@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    mailmanager (1.0.18)
+    mailmanager (1.0.19)
       json (~> 1.4.6)
       open4 (~> 1.0.1)
 

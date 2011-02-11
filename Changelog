@@ -1,4 +1,11 @@
-Current version is 1.0.18
+Current version is 1.0.19
+
+changes since 1.0.18
+- added optional custom_headers arg to MailManager::List#inject
+- added new MailManager::List#inject_raw method to inject raw emails
+- updated to new simplecov-rcov version w/ better coverage calculation
+- documentation errors fixed
+- cleaned up the tests and code a bit
 
 changes since 1.0.17
 - added host_name getter/setter for lists

@@ -42,7 +42,7 @@ describe "MailManager" do
         after :each do
           # since subject is a singleton, side-effects of tests will leak unless
           # we destroy and re-create it every test
-          subject = nil
+          MailManager::Base.reset_instance
         end
 
         it "should raise an error if one of the bin files is missing" do

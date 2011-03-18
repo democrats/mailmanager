@@ -7,6 +7,24 @@ require "open4"
 require 'mailmanager/lib'
 require 'mailmanager/list'
 
+# Add a method to destroy the MailManager::Base singleton
+# so tests have a clean slate each time.
+# Found this here: http://blog.ardes.com/2006/12/11/testing-singletons-with-ruby
+require 'singleton'
+class <<Singleton
+  def included_with_reset(klass)
+    included_without_reset(klass)
+    class <<klass
+      def reset_instance
+        Singleton.send :__init__, self
+        self
+      end
+    end
+  end
+  alias_method :included_without_reset, :included
+  alias_method :included, :included_with_reset
+end
+
 module MailManager
   @root = nil
   @python = '/usr/bin/env python'
@@ -56,6 +74,12 @@ module MailManager
       end
       @lib = MailManager::Lib.new
     end
+
+    # Need this because w/o it, the singleton pattern makes the tests
+    # leak side-effects across from test-to-test
+    # def destroy! #:nodoc:
+    #   @lib = nil
+    # end
 
     # If you want to use a non-default python executable to run the Python
     # portions of this gem, set its full path here. Since we require Python

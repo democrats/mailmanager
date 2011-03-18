@@ -29,7 +29,6 @@ describe "MailManager" do
       context "with a valid Mailman dir" do
         let(:mailman_path) { '/usr/local/mailman' }
         let(:bin_files) { ['list_lists', 'newlist', 'inject'] }
-        let(:subject) { MailManager::Base.instance }
 
         before :each do
           Dir.stub(:exist?).with(mailman_path).and_return(true)
@@ -52,25 +51,22 @@ describe "MailManager" do
           MailManager::Base.instance.should_not be_nil
         end
 
-        describe "#python" do
-          it "should return the python bin being used to run Mailman commands" do
-            subject.python.should == '/usr/bin/env python'
-          end
-        end
-
-        describe "#python=" do
-          it "should set the python bin used to run Mailman commands" do
-            subject.python = '/foo/bar/python'
-            subject.python.should == '/foo/bar/python'
-          end
-        end
-
         describe "#lists" do
           it "should return an array of existing mailing lists" do
-            # TODO
+
           end
         end
       end
+    end
+  end
+
+  describe "List" do
+    describe ".initialize" do
+
+    end
+
+    describe ".create" do
+      
     end
   end
 end

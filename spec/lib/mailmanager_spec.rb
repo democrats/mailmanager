@@ -39,12 +39,6 @@ describe "MailManager" do
           end
         end
 
-        after :each do
-          # since subject is a singleton, side-effects of tests will leak unless
-          # we destroy and re-create it every test
-          subject = nil
-        end
-
         it "should raise an error if one of the bin files is missing" do
           File.stub(:exist?).with("#{mailman_path}/bin/inject").and_return(false)
           lambda {

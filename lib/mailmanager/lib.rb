@@ -31,6 +31,13 @@ module MailManager
       lists.map { |list| list.name }
     end
 
+    def find_member(regex)
+      regex = regex.source if regex.is_a? Regexp
+      cmd = :find_member
+      out = command(cmd, {:regex => regex})
+      parse_output(cmd, out)
+    end
+
     def create_list(params)
       raise ArgumentError, "Missing :name param" if params[:name].nil?
       list_name = params[:name]
@@ -172,6 +179,9 @@ module MailManager
       when :rmlist
         raise ArgumentError, "Missing :name param" if params[:name].nil?
         mailman_cmd += "#{escape(params.delete(:name))} "
+      when :find_member
+        raise ArgumentError, "Missing :regex param" if params[:regex].nil?
+        mailman_cmd += "#{escape(params.delete(:regex))} "
       when :withlist
         raise ArgumentError, "Missing :name param" if params[:name].nil?
         proxy_path = File.dirname(__FILE__)
@@ -235,6 +245,21 @@ module MailManager
           end
         end
         return_obj = lists
+      when :find_member
+        matches = {}
+        puts "Output from Mailman:\n#{output}" if MailManager.debug
+        last_member = nil
+        output.split("\n").each do |line|
+          if line =~ /^(.+) found in:/
+            puts "Found member #{$1}" if MailManager.debug
+            last_member = $1
+            matches[last_member] = []
+          elsif line =~ /^\s*(.+?)$/
+            puts "Found list #{$1} for member #{last_member}" if MailManager.debug
+            matches[last_member] << $1
+          end
+        end
+        return_obj = matches
       end
       return_obj
     end

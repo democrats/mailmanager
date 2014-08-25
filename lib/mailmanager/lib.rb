@@ -32,7 +32,7 @@ module MailManager
     end
 
     def find_member(regex)
-      regex = regex.source if regex.is_a? Regexp
+      raise ArgumentError, "Expected a Python Regular Expression as String" if regex.is_a? Regexp
       cmd = :find_member
       out = command(cmd, {:regex => regex})
       parse_output(cmd, out)

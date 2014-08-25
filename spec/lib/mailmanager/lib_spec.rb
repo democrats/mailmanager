@@ -256,6 +256,36 @@ EOF
       end
     end
 
+    describe "#find_member" do
+      context "with string as argument" do
+        it "should ask Mailman for the matching lists" do
+          subject.should_receive(:run_command).
+            with(/python.*find_member.*foo/, nil).and_return([<<-EOF, process])
+foo@example.com found in:
+     list1
+     list2
+     foobar
+foo@example.net found in:
+     list3
+            EOF
+
+          result = subject.find_member('foo@bar.com')
+          result.should be_a(Hash)
+          result.keys.first.should eq('foo@example.com')
+          result.values.first.should eq(['list1', 'list2', 'foobar'])
+          result.values.last.should eq(['list3'])
+        end
+      end
+
+      context "with Regexp as argument" do
+        it "raises an ArgumentError" do
+          lambda {
+            subject.find_member(/^member/)
+          }.should raise_error(ArgumentError, /Python/)
+        end
+      end
+    end
+
     describe "#web_page_url" do
       it "should ask Mailman for the list's web address" do
         test_attr_getter(:web_page_url, "http://bar.com/mailman/listinfo/foo")

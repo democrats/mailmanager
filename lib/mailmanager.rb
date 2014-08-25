@@ -85,6 +85,14 @@ module MailManager
       @lib.list_names
     end
 
+    # Retrieves all lists for one or multiple list members selected by a regexp
+    # Returns something like { "member@example.com" => [ "first_list", "second_list" ] }
+    # Takes a String or a Regexp
+    #
+    def find_member(regex)
+      @lib.find_member(regex)
+    end
+
     # Create a new list. Returns an instance of MailManager::List. Params are:
     # * :name => 'new_list_name'
     # * :admin_email => 'admin@domain.com'

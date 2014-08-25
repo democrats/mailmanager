@@ -1,3 +1,5 @@
+== This fork is no longer maintained.  Please see the new official fork at: https://github.com/cap10morgan/mailmanager
+
 = MailManager
 
 MailManager is a Ruby wrapper for the GNU Mailman mailing list manager. It exposes
